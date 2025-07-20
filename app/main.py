@@ -15,6 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"msg": "Hello from Chipotle Scheduler"}
+
 @app.get("/api/shifts/{name}")
 def get_shifts(name: str):
     schedule = get_schedule_for_employee(name)
