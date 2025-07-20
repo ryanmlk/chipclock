@@ -1,4 +1,4 @@
-import streamlit as st
+# import streamlit as st
 import camelot
 import fitz
 import re
@@ -93,7 +93,7 @@ def extract_shifts(tables, week_start):
 
     return schedule
 
-def load_latest_schedule():
+def parse_schedule():
     global cached_schedule
     start_date = extract_start_date(SCHEDULE_PATH)
     tables = camelot.read_pdf(SCHEDULE_PATH, pages="all", flavor="stream")
@@ -104,30 +104,31 @@ def get_schedule_for_employee(name):
 
 # ------------------ Streamlit App ------------------
 
-st.set_page_config(page_title="Chipotle Schedule Viewer", layout="centered")
-st.title("📅 Chipotle Schedule Viewer")
+# st.set_page_config(page_title="Chipotle Schedule Viewer", layout="centered")
+# st.title("📅 Chipotle Schedule Viewer")
 
-uploaded_file = st.file_uploader("Upload your Chipotle schedule PDF", type="pdf")
-employee_name = st.text_input("Enter your name exactly as on the schedule (e.g., Moses, Ryan)")
+# # uploaded_file = st.file_uploader("Upload your Chipotle schedule PDF", type="pdf")
+# employee_name = st.text_input("Enter your name exactly as on the schedule (e.g., Moses, Ryan)")
 
-if uploaded_file and employee_name:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-        tmp_file.write(uploaded_file.read())
-        tmp_path = tmp_file.name
-    st.text("Path to temporary file: " + tmp_path)
-    with st.spinner("Extracting your schedule..."):
-        try:
-            start_date = extract_start_date(tmp_path)
-            tables = camelot.read_pdf(tmp_path, pages="all", flavor="stream")
-            schedule_by_employee = extract_shifts(tables, start_date)
+# # if uploaded_file and employee_name:
+# #     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+# #         tmp_file.write(uploaded_file.read())
+# #         tmp_path = tmp_file.name
+#     # st.text("Path to temporary file: " + tmp_path)
+# tmp_path = "latest_schedule.pdf"
+# with st.spinner("Extracting your schedule..."):
+#     try:
+#         start_date = extract_start_date(tmp_path)
+#         tables = camelot.read_pdf(tmp_path, pages="all", flavor="stream")
+#         schedule_by_employee = extract_shifts(tables, start_date)
 
-            shifts = schedule_by_employee.get(employee_name)
-            if shifts:
-                st.success(f"✅ {len(shifts)} shift(s) found for {employee_name}")
-                df = pd.DataFrame(shifts)
-                st.dataframe(df)
-            else:
-                st.warning(f"No shifts found for '{employee_name}'. Please double-check the spelling.")
+#         shifts = schedule_by_employee.get(employee_name)
+#         if shifts:
+#             st.success(f"✅ {len(shifts)} shift(s) found for {employee_name}")
+#             df = pd.DataFrame(shifts)
+#             st.dataframe(df)
+#         else:
+#             st.warning(f"No shifts found for '{employee_name}'. Please double-check the spelling.")
 
-        except Exception as e:
-            st.error(f"Error processing PDF: {e}")
+#     except Exception as e:
+#         st.error(f"Error processing PDF: {e}")

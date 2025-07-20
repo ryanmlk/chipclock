@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
-from app.schedule_parser import get_schedule_for_employee, load_latest_schedule
+from app.gmail_worker import fetch_latest_schedule
+from app.schedule_parser import get_schedule_for_employee, parse_schedule
 from app.calendar_utils import generate_ics_for_employee
 
 app = FastAPI()
@@ -28,6 +30,8 @@ def get_calendar_feed(name: str):
     ics_content = generate_ics_for_employee(name, schedule)
     return Response(content=ics_content, media_type="text/calendar")
 
-@app.on_event("startup")
-def load_data():
-    load_latest_schedule()  # Loads latest PDF if needed
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    fetch_latest_schedule()
+    yield
+    
