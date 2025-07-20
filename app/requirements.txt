@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+gunicorn
+camelot-py[cv]
+PyMuPDF
+ics
+pandas
+python-multipart
+psycopg2-binary
