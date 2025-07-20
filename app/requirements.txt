@@ -7,3 +7,8 @@ ics
 pandas
 python-multipart
 psycopg2-binary
+azure-identity
+azure-keyvault-secrets
+google-api-python-client
+google-auth
+google-auth-oauthlib
