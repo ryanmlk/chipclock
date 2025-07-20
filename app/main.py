@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
-from app.gmail_worker import fetch_latest_schedule
-from app.schedule_parser import get_schedule_for_employee, parse_schedule
-from app.calendar_utils import generate_ics_for_employee
+from gmail_worker import fetch_latest_schedule
+from schedule_parser import get_schedule_for_employee
+from calendar_utils import generate_ics_for_employee
 
 app = FastAPI()
 
