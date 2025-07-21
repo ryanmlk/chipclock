@@ -6,7 +6,12 @@ from gmail_worker import fetch_latest_schedule
 from schedule_parser import get_schedule_for_employee
 from calendar_utils import generate_ics_for_employee
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    fetch_latest_schedule()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,8 +39,4 @@ def get_calendar_feed(name: str):
     ics_content = generate_ics_for_employee(name, schedule)
     return Response(content=ics_content, media_type="text/calendar")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    fetch_latest_schedule()
-    yield
     
