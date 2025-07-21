@@ -1,8 +1,12 @@
 azure-functions
 azure-identity
 azure-keyvault-secrets
+azure-storage-blob
 google-auth
 google-auth-oauthlib
 google-api-python-client
 google-auth-httplib2
 google-cloud-storage
+psycopg2-binary
+camelot-py[cv]
+PyMuPDF

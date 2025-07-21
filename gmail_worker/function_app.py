@@ -6,6 +6,7 @@ from azure.keyvault.secrets import SecretClient
 import datetime
 import sys
 from gmail_worker import fetch_latest_schedule
+from schedule_parser import parse_schedule
 
 app = func.FunctionApp()
 key_vault_url = os.environ["KEY_VAULT_URL"]
@@ -43,10 +44,9 @@ def fetch_schedule(myTimer: func.TimerRequest) -> None:
     logging.info(f"Using Python: {sys.executable}")
     load_credentials_from_keyvault()
     logging.info('Credentials loaded from Azure Key Vault.')
-    pdf_path = fetch_latest_schedule()
-    pdf_path = None
-    if pdf_path:
-        # parse_schedule(pdf_path)
+    blob_name = fetch_latest_schedule()
+    if blob_name:
+        parse_schedule(blob_name)
         logging.info('Schedule updated from latest Gmail PDF.')
     else:
         logging.warning('No schedule PDF found.')
