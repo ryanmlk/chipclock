@@ -5,3 +5,11 @@ app/__pycache__/schedule_parser.cpython-313.pyc
 do_not_commit.txt
 credentials1.json
 app-env/
+.vscode/
+__queuestorage__/
+__blobstorage__/
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__azurite_db_queue__.json
+__azurite_db_queue_extent__.json
+__azurite_db_table__.json
