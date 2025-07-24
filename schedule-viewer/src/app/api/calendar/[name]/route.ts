@@ -9,9 +9,11 @@ const pool = new Pool({
   },
 });
 
-export async function GET(req: NextRequest, context: { params: { name: string } }) {
-    const params = await context.params;
-    const name = decodeURIComponent(params.name);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ name: string }> }
+) {
+    const { name } = await params;
     if (!name) return NextResponse.json([], { status: 400 });
 
     const client = await pool.connect();
