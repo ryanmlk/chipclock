@@ -5,7 +5,7 @@ import { useState } from 'react';
 export default function SchedulePage() {
   const [name, setName] = useState('Ryan');
   const [schedule, setSchedule] = useState([]);
-  const calendarFeedUrl = `https://chipotle.ryanmoses.net/api/calendar?name=${encodeURIComponent(name)}`;
+  const calendarFeedUrl = `https://chipotle.ryanmoses.net/api/calendar/${encodeURIComponent(name)}`;
 
   const fetchSchedule = async () => {
     const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);
