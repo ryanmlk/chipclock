@@ -1,24 +1,17 @@
 'use client';
+import { ScheduleTable } from '@/components/scheduleTable';
 import { useState } from 'react';
 
 export default function SchedulePage() {
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Ryan');
   const [schedule, setSchedule] = useState([]);
+  const calendarFeedUrl = `https://chipotle.ryanmoses.net/api/calendar?name=${encodeURIComponent(name)}`;
 
   const fetchSchedule = async () => {
     const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);
     const data = await res.json();
     setSchedule(data);
     console.log(data);
-  };
-
-  type shift = {
-    name: string;
-    start_time: string;
-    end_time: string;
-    shift_date: string;
-    shift_type: string;
-    hours: string;
   };
 
   return (
@@ -34,14 +27,16 @@ export default function SchedulePage() {
       <button onClick={fetchSchedule} className="bg-blue-500 text-white px-3 py-1 rounded">
         View Schedule
       </button>
-
-      <ul className="mt-4">
-        {schedule.map((shift: shift, index) => (
-          <li key={index} className="border-b py-1">
-            {shift.shift_date}: {shift.start_time} - {shift.end_time} ({shift.shift_type})
-          </li>
-        ))}
-      </ul>
+      <ScheduleTable shifts={schedule} />
+      <button>
+        <a
+          href={`https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(calendarFeedUrl)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Add to Google Calendar
+        </a>
+      </button>
     </div>
   );
 }
