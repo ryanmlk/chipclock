@@ -1,37 +1,34 @@
-import { format } from "date-fns";
+import { createEvents, EventAttributes } from 'ics'
 
-function combineDateAndTime(dateString: string, timeString: string): Date {
-    const date = new Date(dateString);
-    const [hours, minutes, seconds] = timeString.split(":").map(Number);
-    date.setHours(hours);
-    date.setMinutes(minutes);
-    date.setSeconds(seconds || 0);
-    return date;
+export async function generateICS(name: string, shifts: Shift[]): Promise<string> {
+  const events = shifts.map((shift) => {
+    const [year, month, day] = new Date(shift.shift_date).toISOString().split('T')[0].split('-').map(Number)
+    const [startHour, startMinute] = shift.start_time.split(':').map(Number)
+    const [endHour, endMinute] = shift.end_time.split(':').map(Number)
+
+    // Calculate duration
+    const durationHours = endHour - startHour
+    const durationMinutes = 0
+
+    return {
+      start: [year, month, day, startHour, startMinute] as [number, number, number, number, number],
+      duration: { hours: durationHours, minutes: durationMinutes },
+      title: `${name}'s Shift`,
+      description: 'Scheduled work shift',
+      location: 'Chipotle',
+      status: 'CONFIRMED',
+      busyStatus: 'BUSY',
+      organizer: { name: 'Chipotle Scheduler', email: 'noreply@chipotle.com'}
+    } as EventAttributes
+  })
+
+  console.log('Generated events:', events)
+
+  const { error, value } = createEvents(events)
+  if (error) {
+    console.error('Error generating ICS:', error)
+    throw new Error('Failed to generate ICS file')
+  } else {
+    return value || ''
   }
-
-export function generateICS(name: string, shifts: Shift[]) {
-  const events = shifts.map((shift, i) => {
-    const startDate = combineDateAndTime(shift.shift_date, shift.start_time);
-    const endDate = combineDateAndTime(shift.shift_date, shift.end_time);
-    const start = format(startDate, "yyyyMMdd'T'HHmmss");
-    const end = format(endDate, "yyyyMMdd'T'HHmmss");
-
-    return `
-BEGIN:VEVENT
-UID:${name}-shift-${i}@schedule.app
-DTSTAMP:${start}
-DTSTART:${start}
-DTEND:${end}
-SUMMARY:Shift
-DESCRIPTION:Work shift for ${name}
-END:VEVENT`;
-  });
-
-  return `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Your App//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-${events.join("\n")}
-END:VCALENDAR`;
 }

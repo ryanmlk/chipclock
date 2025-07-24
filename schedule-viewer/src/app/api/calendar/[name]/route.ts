@@ -32,7 +32,7 @@ export async function GET(
         return new NextResponse("No shifts found", { status: 404 });
       }
   
-      const icsContent = generateICS(name, rows);
+      const icsContent = await generateICS(name, rows);
   
       return new NextResponse(icsContent, {
         status: 200,
