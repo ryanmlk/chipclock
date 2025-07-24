@@ -1,9 +1,20 @@
 import { format } from "date-fns";
 
+function combineDateAndTime(dateString: string, timeString: string): Date {
+    const date = new Date(dateString);
+    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    date.setSeconds(seconds || 0);
+    return date;
+  }
+
 export function generateICS(name: string, shifts: Shift[]) {
   const events = shifts.map((shift, i) => {
-    const start = format(new Date(`${shift.shift_date}T${shift.start_time}`), "yyyyMMdd'T'HHmmss");
-    const end = format(new Date(`${shift.shift_date}T${shift.end_time}`), "yyyyMMdd'T'HHmmss");
+    const startDate = combineDateAndTime(shift.shift_date, shift.start_time);
+    const endDate = combineDateAndTime(shift.shift_date, shift.end_time);
+    const start = format(startDate, "yyyyMMdd'T'HHmmss");
+    const end = format(endDate, "yyyyMMdd'T'HHmmss");
 
     return `
 BEGIN:VEVENT

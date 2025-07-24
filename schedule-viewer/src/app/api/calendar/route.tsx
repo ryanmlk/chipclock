@@ -4,6 +4,9 @@ import { generateICS } from "@/lib/generateICS";
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_CONN_STR,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export async function GET(
@@ -11,7 +14,7 @@ export async function GET(
   ) {
     const name = req.nextUrl.searchParams.get("name");
     if (!name) return NextResponse.json([], { status: 400 });
-    
+
     const client = await pool.connect();
   
     try {
