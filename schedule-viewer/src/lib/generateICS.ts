@@ -22,8 +22,6 @@ export async function generateICS(name: string, shifts: Shift[]): Promise<string
     } as EventAttributes
   })
 
-  console.log('Generated events:', events)
-
   const { error, value } = createEvents(events)
   if (error) {
     console.error('Error generating ICS:', error)
