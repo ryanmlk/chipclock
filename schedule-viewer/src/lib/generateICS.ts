@@ -2,23 +2,30 @@ import { createEvents, EventAttributes } from 'ics'
 
 export async function generateICS(name: string, shifts: Shift[]): Promise<string> {
   const events = shifts.map((shift) => {
-    const [year, month, day] = new Date(shift.shift_date).toISOString().split('T')[0].split('-').map(Number)
+    const dateObj = new Date(shift.shift_date)
+    const [year, month, day] = [
+      dateObj.getFullYear(),
+      dateObj.getMonth() + 1,
+      dateObj.getDate(),
+    ]
+    
     const [startHour, startMinute] = shift.start_time.split(':').map(Number)
     const [endHour, endMinute] = shift.end_time.split(':').map(Number)
 
-    // Calculate duration
     const durationHours = endHour - startHour
-    const durationMinutes = 0
+    const durationMinutes = endMinute - startMinute
 
     return {
-      start: [year, month, day, startHour, startMinute] as [number, number, number, number, number],
+      start: [year, month, day, startHour, startMinute],
+      startInputType: 'local',
       duration: { hours: durationHours, minutes: durationMinutes },
-      title: `${name}'s Shift`,
+      title: `Chipotle ${shift.shift_type} Shift`,
       description: 'Scheduled work shift',
       location: 'Chipotle',
       status: 'CONFIRMED',
       busyStatus: 'BUSY',
-      organizer: { name: 'Chipotle Scheduler', email: 'noreply@chipotle.com'}
+      organizer: { name: 'Chipotle Scheduler', email: 'noreply@chipotle.com' },
+      timezone: 'America/Toronto',
     } as EventAttributes
   })
 
