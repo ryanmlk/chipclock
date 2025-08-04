@@ -25,7 +25,6 @@ export async function generateICS(name: string, shifts: Shift[]): Promise<string
       status: 'CONFIRMED',
       busyStatus: 'BUSY',
       organizer: { name: 'Chipotle Scheduler', email: 'noreply@chipotle.com' },
-      timezone: 'America/Toronto',
     } as EventAttributes
   })
 
