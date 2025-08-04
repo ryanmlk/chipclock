@@ -1,11 +1,15 @@
 'use client';
 import { ScheduleTable } from '@/components/scheduleTable';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function SchedulePage() {
-  const [name, setName] = useState('Ryan');
+  const [name, setName] = useState('');
   const [schedule, setSchedule] = useState([]);
-  const calendarFeedUrl = `https://chipotle.ryanmoses.net/api/calendar/${encodeURIComponent(name)}`;
+  const [calendarFeedUrl, setCalendarFeedUrl] = useState('');
+
+  useEffect(() => {
+    setCalendarFeedUrl(`https://chipotle.ryanmoses.net/api/calendar/${encodeURIComponent(name)}`);
+  },[name])
 
   const fetchSchedule = async () => {
     const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);

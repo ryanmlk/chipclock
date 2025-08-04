@@ -21,7 +21,13 @@ def authenticate_gmail():
             creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
         elif not creds or not creds.valid:
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
-            creds = flow.run_local_server(port=8080)
+            creds = flow.run_local_server(
+                port=8080,
+                authorization_prompt_message="Please visit this URL: {url}",
+                success_message="The auth flow is complete; you may close this window.",
+                access_type="offline",          # this is key
+                prompt="consent"                # ensures refresh_token is issued every time
+            )
             with open(TOKEN_PATH, 'w') as token:
                 token.write(creds.to_json())
         return build('gmail', 'v1', credentials=creds)
@@ -74,4 +80,6 @@ def fetch_latest_schedule():
 
     logging.warning("No PDF attachment found.")
     return None
+
+fetch_latest_schedule()
 
