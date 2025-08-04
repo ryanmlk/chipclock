@@ -10,6 +10,7 @@ export function ScheduleTable({ shifts }: Props) {
   const sortedShifts = [...shifts].sort((a, b) => a.shift_date.localeCompare(b.shift_date))
 
 const formatShiftDate = (date: string): string => {
+    console.log('Formatting date:', date);
     const d = new Date(date);
     
     // Get day of week
