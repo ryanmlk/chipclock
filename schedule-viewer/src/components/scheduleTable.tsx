@@ -9,22 +9,29 @@ type Props = {
 export function ScheduleTable({ shifts }: Props) {
   const sortedShifts = [...shifts].sort((a, b) => a.shift_date.localeCompare(b.shift_date))
 
-const formatShiftDate = (date: string): string => {
-    console.log('Formatting date:', date);
+  const formatShiftDate = (date: string): string => {
     const d = new Date(date);
-    
-    // Get day of week
-    const dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'long' });
-    
-    // Get month
-    const month = d.toLocaleDateString('en-US', { month: 'long' });
-    
-    // Get day with ordinal suffix
-    const day = d.getDate();
-    const suffix = getDaySuffix(day);
-    
+  
+    // Force UTC-based formatting to avoid time zone shifts
+    const dayOfWeek = d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      timeZone: 'UTC',
+    });
+  
+    const month = d.toLocaleDateString('en-US', {
+      month: 'long',
+      timeZone: 'UTC',
+    });
+  
+    const day = d.toLocaleDateString('en-US', {
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+  
+    const suffix = getDaySuffix(parseInt(day));
+  
     return `${dayOfWeek}, ${month} ${day}${suffix}`;
-}
+  };
 
 const getDaySuffix = (day: number): string => {
     if (day > 3 && day < 21) return 'th';
