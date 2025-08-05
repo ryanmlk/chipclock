@@ -1,73 +1,14 @@
 'use client';
 import { ScheduleTable } from '@/components/scheduleTable';
 import GoogleCalendarButton from '@/components/ui/googleSignIn';
-import { parseISO } from 'date-fns';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 export default function SchedulePage() {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const [name, setName] = useState('');
   const [schedule, setSchedule] = useState<Shift[]>([]);
   const [calendarFeedUrl, setCalendarFeedUrl] = useState('');
-
-  const createCalendarEvents = useCallback(async () => {
-    const events = schedule.map((shift) => {
-        // Parse shift date
-        const [year, month, day] = shift.shift_date.substring(0, 10).split('-').map(Number)
-        console.log('Parsed shift date:', year, month, day)
-    
-        // Extract start time and end time parts
-        const [startHour, startMinute] = shift.start_time.split(':').map(Number)
-        const [endHour, endMinute] = shift.end_time.split(':').map(Number)
-    
-        // Combine date + time to create start and end Date objects
-        const startDate = new Date(
-          year,
-          month - 1,
-          day,
-          startHour,
-          startMinute,
-        )
-    
-        const endDate = new Date(
-          year,
-          month - 1,
-          day,
-          endHour,
-          endMinute
-        )
-    
-        return {
-          id: shift.id,
-          start: startDate.toISOString(),
-          end: endDate.toISOString(),
-          summary: `Chipotle ${shift.shift_type} Shift`,
-          description: 'Scheduled work shift',
-        }
-    })
-    console.log('Creating calendar events:', events)
-    for (const event of events) {
-        await fetch('/api/calendar/add', {
-            method: 'POST',
-            body: JSON.stringify({
-              token: session?.accessToken,
-              event: {
-                id: event.id,
-                summary: event.summary,
-                description: event.description,
-                start: event.start,
-                end: event.end,
-              },
-            }),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-    }
-  }, [schedule, session])
 
   const fetchSchedule = useCallback(async () => {
     const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);
@@ -78,20 +19,16 @@ export default function SchedulePage() {
   useEffect(() => {
     const url = new URL(window.location.href)
     const shouldSync = url.searchParams.get('sync') === 'true'
-    if (status === 'authenticated' && shouldSync) {
-      setName(url.searchParams.get('name') || '');
-      fetchSchedule().then(() => {
-        url.searchParams.delete('sync')
-        url.searchParams.delete('name')
-        router.replace(url.pathname, { scroll: false })
-      })
+    if (shouldSync) {
+      const name = url.searchParams.get('name') || ''
+      const syncUrl = name ? `/sync?name=${encodeURIComponent(name)}` : '/sync'
+      router.replace(syncUrl)
     }
-  }, [status, router, fetchSchedule])
+  }, [router])
 
   useEffect(() => {
     setCalendarFeedUrl(`${window.location.origin}/api/calendar/${encodeURIComponent(name)}.ics`);
-    createCalendarEvents()
-  },[name, schedule, createCalendarEvents])
+  },[name])
 
 
   return (
