@@ -41,6 +41,7 @@ export default function SchedulePage() {
         )
     
         return {
+          id: shift.id,
           start: startDate.toISOString(),
           end: endDate.toISOString(),
           summary: `Chipotle ${shift.shift_type} Shift`,
@@ -54,6 +55,7 @@ export default function SchedulePage() {
             body: JSON.stringify({
               token: session?.accessToken,
               event: {
+                id: event.id,
                 summary: event.summary,
                 description: event.description,
                 start: event.start,
