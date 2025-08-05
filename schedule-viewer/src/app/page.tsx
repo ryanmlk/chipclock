@@ -8,7 +8,7 @@ export default function SchedulePage() {
   const [calendarFeedUrl, setCalendarFeedUrl] = useState('');
 
   useEffect(() => {
-    setCalendarFeedUrl(`https://chipotle.ryanmoses.net/api/calendar/${encodeURIComponent(name)}.ics`);
+    setCalendarFeedUrl(`${window.location.origin}/api/calendar/${encodeURIComponent(name)}.ics`);
   },[name])
 
   const fetchSchedule = async () => {
