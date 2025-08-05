@@ -1,8 +1,15 @@
-type Shift = {
-    name: string;
-    start_time: string;
-    end_time: string;
-    shift_date: string;
-    shift_type: string;
-    hours: string;
-};
+import NextAuth from "next-auth"
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string
+    refreshToken?: string
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string
+    refreshToken?: string
+  }
+}

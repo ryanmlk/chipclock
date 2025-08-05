@@ -16,7 +16,7 @@ export async function generateICS(name: string, shifts: Shift[]): Promise<string
       start: [year, month, day, startHour, startMinute],
       end: [year, month, day, endHour, endMinute],
       startInputType: 'local', // This prevents UTC conversion
-      title: `${name}'s Shift`,
+      title: `Chipotle ${shift.shift_type} Shift`,
       description: 'Scheduled work shift',
       location: 'Chipotle',
       status: 'CONFIRMED',
