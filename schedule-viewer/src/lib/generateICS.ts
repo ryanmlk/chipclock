@@ -12,14 +12,11 @@ export async function generateICS(name: string, shifts: Shift[]): Promise<string
     const [startHour, startMinute] = shift.start_time.split(':').map(Number)
     const [endHour, endMinute] = shift.end_time.split(':').map(Number)
 
-    const durationHours = endHour - startHour
-    const durationMinutes = endMinute - startMinute
-
     return {
       start: [year, month, day, startHour, startMinute],
-      startInputType: 'local',
-      duration: { hours: durationHours, minutes: durationMinutes },
-      title: `Chipotle ${shift.shift_type} Shift`,
+      end: [year, month, day, endHour, endMinute],
+      startInputType: 'local', // This prevents UTC conversion
+      title: `${name}'s Shift`,
       description: 'Scheduled work shift',
       location: 'Chipotle',
       status: 'CONFIRMED',
