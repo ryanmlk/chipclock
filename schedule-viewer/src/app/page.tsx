@@ -16,7 +16,8 @@ export default function SchedulePage() {
   const createCalendarEvents = useCallback(async () => {
     const events = schedule.map((shift) => {
         // Parse shift date
-        const shiftDate = parseISO(shift.shift_date) // gives you a Date object in local time
+        const [year, month, day] = shift.shift_date.substring(0, 10).split('-').map(Number)
+        console.log('Parsed shift date:', year, month, day)
     
         // Extract start time and end time parts
         const [startHour, startMinute] = shift.start_time.split(':').map(Number)
@@ -24,17 +25,17 @@ export default function SchedulePage() {
     
         // Combine date + time to create start and end Date objects
         const startDate = new Date(
-          shiftDate.getFullYear(),
-          shiftDate.getMonth(),
-          shiftDate.getDate(),
+          year,
+          month - 1,
+          day,
           startHour,
           startMinute,
         )
     
         const endDate = new Date(
-          shiftDate.getFullYear(),
-          shiftDate.getMonth(),
-          shiftDate.getDate(),
+          year,
+          month - 1,
+          day,
           endHour,
           endMinute
         )
