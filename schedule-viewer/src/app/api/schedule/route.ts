@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
         JOIN employees e ON s.employee_id = e.id
         WHERE (${nameConditions})
             AND s.shift_date >= CURRENT_DATE
-            AND s.shift_date < CURRENT_DATE + INTERVAL '7 days'
         ORDER BY s.shift_date, s.start_time`,
       [...name]
     );
