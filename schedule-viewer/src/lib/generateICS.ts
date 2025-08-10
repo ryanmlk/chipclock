@@ -2,19 +2,24 @@ import { createEvents, EventAttributes } from 'ics'
 
 export async function generateICS(name: string, shifts: Shift[]): Promise<string> {
   const events = shifts.map((shift) => {
-    const dateObj = new Date(shift.shift_date)
-    const [year, month, day] = [
-      dateObj.getFullYear(),
-      dateObj.getMonth() + 1,
-      dateObj.getDate(),
+    const startObj = [
+      shift.shift_start.getFullYear(),
+      shift.shift_start.getMonth() + 1,
+      shift.shift_start.getDate(),
+      shift.shift_start.getHours(),
+      shift.shift_start.getMinutes(),
     ]
-    
-    const [startHour, startMinute] = shift.start_time.split(':').map(Number)
-    const [endHour, endMinute] = shift.end_time.split(':').map(Number)
+    const endObj = [
+      shift.shift_end.getFullYear(),
+      shift.shift_end.getMonth() + 1,
+      shift.shift_end.getDate(),
+      shift.shift_end.getHours(),
+      shift.shift_end.getMinutes(),
+    ]
 
     return {
-      start: [year, month, day, startHour, startMinute],
-      end: [year, month, day, endHour, endMinute],
+      start: startObj,
+      end: endObj,
       startInputType: 'local', // This prevents UTC conversion
       title: `Chipotle ${shift.shift_type} Shift`,
       description: 'Scheduled work shift',

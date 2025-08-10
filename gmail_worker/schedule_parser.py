@@ -1,4 +1,5 @@
 # import streamlit as st
+import logging
 import camelot
 import fitz
 import re
@@ -8,6 +9,24 @@ import psycopg2
 from psycopg2.extras import execute_values
 from azure_blob_utils import read_schedule_from_blob
 import os
+import pytz
+
+# FOR LOCAL TESTING ONLY
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.StreamHandler()  # Output to console
+#     ]
+# )
+
+# PGHOST = os.environ.get("PGHOST")
+# PGUSER = os.environ.get("PGUSER")
+# PGPASSWORD = os.environ.get("PGPASSWORD")
 
 PGHOST = os.environ["PGHOST"]
 PGUSER = os.environ["PGUSER"]
@@ -26,7 +45,8 @@ def extract_start_date(pdf_path):
         date_str = match.group(1)
         return datetime.strptime(date_str, "%m/%d/%Y")
     else:
-        raise ValueError("Start Date not found in PDF.")
+        logging.info("Start Date not found in PDF.")
+        return None
 
 def is_name_cell(cell):
     return bool(cell) and "," in cell and not any(char.isdigit() for char in cell)
@@ -84,21 +104,39 @@ def extract_shifts(tables, week_start):
                     hours = str(row[i + 2]).strip() if i + 2 < len(row) else ""
 
                 shift_type = str(row[i]).strip() if i < len(row) else ""
+                shift_types = {
+                    'P': 'Prep',
+                    'S': 'Salsa',
+                    'G': 'Grill',
+                    '$': 'Cashier',
+                    'T': 'Tortilla',
+                    'E': 'Expo',
+                    'D': 'DML'
+                }
 
                 if time_range and "-" in time_range:
-                    start, end = parse_time_range(time_range)
-                    if start and end:
+                    start_time_str, end_time_str = parse_time_range(time_range)
+                    toronto_tz = pytz.timezone("America/Toronto")
+                    if start_time_str and end_time_str:
+                        date_str = days[day]
+                        
+                        start_dt = toronto_tz.localize(
+                            datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+                        )
+                        end_dt = toronto_tz.localize(
+                            datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
+                        )
+
                         schedule[current_name].append({
-                            "date": days[day],
-                            "start": start,
-                            "end": end,
-                            "type": shift_type,
+                            "start": start_dt.isoformat(),
+                            "end": end_dt.isoformat(),
+                            "type": shift_types.get(shift_type, shift_type),
                             "hours": hours
                         })
 
     return schedule
 
-def insert_schedule_to_db(schedule):
+def insert_schedule_to_db(schedule, start_date):
     with psycopg2.connect(DB_CONN_STR) as conn:
         with conn.cursor() as cur:
             for name, shifts in schedule.items():
@@ -118,21 +156,34 @@ def insert_schedule_to_db(schedule):
                 for shift in shifts:
                     rows.append((
                         employee_id,
-                        shift['date'],
                         shift['start'],
                         shift['end'],
                         shift.get('type', ''),
-                        shift.get('hours', '')
+                        shift.get('hours', ''),
+                        start_date
                     ))
 
                 sql = """
                     INSERT INTO schedule_shifts (
-                        employee_id, shift_date, start_time, end_time, shift_type, hours
+                        employee_id, shift_start, shift_end, shift_type, hours, week_start_date
                     )
                     VALUES %s
-                    ON CONFLICT (employee_id, shift_date, start_time, end_time) DO NOTHING;
+                    ON CONFLICT (employee_id, shift_start, shift_end) DO NOTHING;
                 """
                 execute_values(cur, sql, rows)
+                
+def delete_old_shifts(week_start_date):
+    with psycopg2.connect(DB_CONN_STR) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM schedule_shifts WHERE week_start_date = %s;", (week_start_date,))
+            results = cur.fetchall()
+            if results:
+                cur.execute("DELETE FROM schedule_shifts WHERE week_start_date = %s;", (week_start_date,))
+                conn.commit()
+                logging.info(f"Deleted {cur.rowcount} old shifts for week starting {week_start_date}.")
+            else:
+                logging.info(f"No existing shifts found for week starting {week_start_date}.")
+    
 
 def parse_schedule(blob_name):
     global cached_schedule
@@ -143,7 +194,28 @@ def parse_schedule(blob_name):
         start_date = extract_start_date(schedule_path)
         tables = camelot.read_pdf(schedule_path, pages="all", flavor="stream")
         cached_schedule = extract_shifts(tables, start_date)
-        insert_schedule_to_db(cached_schedule)
+        delete_old_shifts(start_date)
+        insert_schedule_to_db(cached_schedule, start_date)
+        
+def parse_schedule_local():
+    count = 45
+    while count >= 0:
+        logging.info(f"Attempting to parse local schedule file: schedule_{count}.pdf")
+        schedule_path = f'D:\Projects\ScheduleExtractor\gmail_worker\schedules\schedule_{count}.pdf'
+        if not os.path.exists(schedule_path):
+            logging.error(f"File not found: {schedule_path}")
+        else:
+            start_date = extract_start_date(schedule_path)
+            if not start_date:
+                logging.error(f"Failed to extract start date from {schedule_path}")
+                count -= 1
+                continue
+            tables = camelot.read_pdf(schedule_path, pages="all", flavor="stream")
+            cached_schedule = extract_shifts(tables, start_date)
+            delete_old_shifts(start_date)
+            insert_schedule_to_db(cached_schedule, start_date)
+        logging.info(f"Schedule No. {count} parsed successfully with start date {start_date.strftime('%Y-%m-%d')}.\n===================================")
+        count -= 1
 
 def get_schedule_for_employee(name):
     return cached_schedule.get(name, [])

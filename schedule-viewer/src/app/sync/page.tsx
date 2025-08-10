@@ -17,21 +17,11 @@ export default function SyncPage() {
   }, []);
 
   const createCalendarEvents = useCallback(async () => {
-    const events = schedule.map((shift) => {
-      const [year, month, day] = shift.shift_date
-        .substring(0, 10)
-        .split("-")
-        .map(Number);
-      const [startHour, startMinute] = shift.start_time.split(":").map(Number);
-      const [endHour, endMinute] = shift.end_time.split(":").map(Number);
-
-      const startDate = new Date(year, month - 1, day, startHour, startMinute);
-      const endDate = new Date(year, month - 1, day, endHour, endMinute);
-
+    const events = schedule.map((shift: Shift) => {
       return {
         id: shift.id,
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
+        start: shift.shift_start.toISOString(),
+        end: shift.shift_end.toISOString(),
         summary: `Chipotle ${shift.shift_type} Shift`,
         description: "Scheduled work shift",
       };

@@ -20,11 +20,11 @@ export async function GET(
   
     try {
       const { rows } = await client.query(
-        `SELECT e.name, s.shift_date, s.start_time, s.end_time, s.shift_type, s.hours
+        `SELECT e.name, s.shift_start, s.shift_end, s.shift_type, s.hours
           FROM schedule_shifts s
           JOIN employees e ON s.employee_id = e.id
           WHERE e.name ILIKE $1
-          ORDER BY s.shift_date, s.start_time`,
+          ORDER BY s.shift_start`,
         [`%${name}%`]
       );
   

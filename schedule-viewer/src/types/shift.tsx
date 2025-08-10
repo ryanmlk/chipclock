@@ -1,9 +1,8 @@
 type Shift = {
     id: string;
     name: string;
-    start_time: string;
-    end_time: string;
-    shift_date: string;
+    shift_start: Date;
+    shift_end: Date;
     shift_type: string;
     hours: string;
 };

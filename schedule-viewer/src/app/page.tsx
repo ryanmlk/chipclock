@@ -7,10 +7,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
 
@@ -20,17 +16,35 @@ export default function SchedulePage() {
   const [schedule, setSchedule] = useState<Shift[]>([]);
   const [calendarFeedUrl, setCalendarFeedUrl] = useState("");
 
-  const fetchSchedule = useCallback(async () => {
-    const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);
+  const fetchSchedule = useCallback(async (nameParam?: string) => {
+    const nameToUse = nameParam || name;
+    if (!nameToUse) {
+      toast("Please enter your name", {
+        description: "Name is required to fetch your schedule.",
+      });
+      return;
+    }
+    
+    const res = await fetch(`/api/schedule?name=${encodeURIComponent(nameToUse)}`);
     const data = await res.json();
     if (!Array.isArray(data) || data.length < 1) {
       console.error("Failed to fetch schedule:", data);
       toast("Failed to fetch schedule", {
         description: "Check that name matches name in Schedule and try again.",
-      })
+      });
       return;
     }
-    setSchedule(data);
+    const parsedData = data.map(shift => ({
+      ...shift,
+      shift_start: new Date(shift.shift_start),
+      shift_end: new Date(shift.shift_end),
+    }));
+    
+    localStorage.setItem("scheduleName", nameToUse);
+    if (nameParam && nameParam !== name) {
+      setName(nameToUse);
+    }
+    setSchedule(parsedData);
   }, [name]);
 
   useEffect(() => {
@@ -49,6 +63,15 @@ export default function SchedulePage() {
     );
   }, [name]);
 
+  useEffect(() => {
+    const storedName = localStorage.getItem("scheduleName");
+    if (storedName) {
+      setName(storedName);
+      fetchSchedule(storedName);
+    }
+  }, []);
+  
+
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold text-center mb-4">Chipotle Schedule</h1>
@@ -63,13 +86,13 @@ export default function SchedulePage() {
                 className="border px-2 py-1 rounded mt-2 flex-grow w-full"
               />
               <button
-                onClick={fetchSchedule}
+                onClick={() => fetchSchedule()}
                 className="bg-blue-500 text-white px-3 py-1 rounded mt-2 mb-5 w-full"
               >
                 View Schedule
               </button>
           </CardAction>
-          <ScheduleTable shifts={schedule} />
+          {schedule.length > 0 && <ScheduleTable shifts={schedule} />}
         </CardContent>
       </Card>
       {/* {(schedule.length > 0) && (<>

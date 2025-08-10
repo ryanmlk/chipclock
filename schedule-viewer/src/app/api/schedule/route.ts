@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT s.id, e.name, s.shift_date, s.start_time, s.end_time, s.shift_type, s.hours
+      `SELECT s.id, e.name, s.shift_start, s.shift_end, s.shift_type, s.hours
         FROM schedule_shifts s
         JOIN employees e ON s.employee_id = e.id
         WHERE (${nameConditions})
-            AND s.shift_date >= CURRENT_DATE
-        ORDER BY s.shift_date, s.start_time`,
+            AND s.shift_start >= CURRENT_DATE
+        ORDER BY s.shift_start`,
       [...name]
     );
     return NextResponse.json(result.rows);

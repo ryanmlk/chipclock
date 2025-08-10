@@ -1,65 +1,23 @@
 "use client"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { format } from 'date-fns';
 
 type Props = {
   shifts: Shift[]
 }
 
 export function ScheduleTable({ shifts }: Props) {
-  const sortedShifts = [...shifts].sort((a, b) => a.shift_date.localeCompare(b.shift_date))
+  const sortedShifts = [...shifts].sort(
+    (a, b) => new Date(a.shift_start).getTime() - new Date(b.shift_start).getTime()
+  );
 
-  const formatShiftDate = (date: string): string => {
-    const d = new Date(date);
-  
-    // Force UTC-based formatting to avoid time zone shifts
-    const dayOfWeek = d.toLocaleDateString('en-US', {
-      weekday: 'long',
-      timeZone: 'UTC',
-    });
-  
-    const month = d.toLocaleDateString('en-US', {
-      month: 'long',
-      timeZone: 'UTC',
-    });
-  
-    const day = d.toLocaleDateString('en-US', {
-      day: 'numeric',
-      timeZone: 'UTC',
-    });
-  
-    const suffix = getDaySuffix(parseInt(day));
-  
-    return `${dayOfWeek}, ${month} ${day}${suffix}`;
-  };
-
-const getDaySuffix = (day: number): string => {
-    if (day > 3 && day < 21) return 'th';
-    switch (day % 10) {
-        case 1: return 'st';
-        case 2: return 'nd';
-        case 3: return 'rd';
-        default: return 'th';
-    }
-}
-
-const getShiftType = (type: string): string => {
-    switch (type) {
-        case 'P': return 'Prep';
-        case 'S': return 'Salsa';
-        case 'G': return 'Grill';
-        case '$': return 'Cashier';
-        case 'T': return 'Tortilla';
-        case 'E': return 'Expo';
-        case 'D': return 'DML';
-        default: return type;    }
-}
-
-const formatTime = (time: string): string => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+const formatTime = (date: Date): string => {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
   return (
@@ -76,10 +34,10 @@ const formatTime = (time: string): string => {
       <TableBody>
         {sortedShifts.map((shift, index) => (
           <TableRow key={index}>
-            <TableCell>{formatShiftDate(shift.shift_date)}</TableCell>
-            <TableCell>{formatTime(shift.start_time)}</TableCell>
-            <TableCell>{formatTime(shift.end_time)}</TableCell>
-            <TableCell>{getShiftType(shift.shift_type)}</TableCell>
+            <TableCell>{format(shift.shift_start, "EEEE, MMMM do yyyy")}</TableCell>
+            <TableCell>{formatTime(shift.shift_start)}</TableCell>
+            <TableCell>{formatTime(shift.shift_end)}</TableCell>
+            <TableCell>{shift.shift_type}</TableCell>
             <TableCell>{shift.hours}</TableCell>
           </TableRow>
         ))}
