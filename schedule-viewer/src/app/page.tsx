@@ -9,6 +9,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { WeeklyHoursCard } from "@/components/weeklyHoursCard";
 
 export default function SchedulePage() {
   const router = useRouter();
@@ -95,6 +96,7 @@ export default function SchedulePage() {
           {schedule.length > 0 && <ScheduleTable shifts={schedule} />}
         </CardContent>
       </Card>
+      {schedule.length > 0 && <WeeklyHoursCard name={name} />}
       {/* {(schedule.length > 0) && (<>
       <button className="bg-blue-500 text-white px-3 py-1 ml-3 rounded">
         <a

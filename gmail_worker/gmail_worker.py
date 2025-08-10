@@ -103,7 +103,7 @@ def fetch_all_schedules():
     for count, message in enumerate(messages):
         logging.info("Object: %s", message['id'])
         msg = service.users().messages().get(userId='me', id=message['id']).execute()
-        blob_name = f"gmail_worker/schedules/schedule_{count}.pdf"
+        blob_name = f"schedules/schedule_{count}.pdf"
         logging.info(f"Processing message {count + 1}/{len(messages)}: {blob_name}")
 
         # Look for PDF attachment
