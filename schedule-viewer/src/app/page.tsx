@@ -75,7 +75,15 @@ export default function SchedulePage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold text-center mb-4">Chipotle Schedule</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">Chipotle Schedule</h1>
+        <button 
+          onClick={() => router.push('/availability')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          Manage Availability
+        </button>
+      </div>
       <Card>
         <CardContent>
         <CardAction className="flex flex-col items-center gap-2 w-full">
