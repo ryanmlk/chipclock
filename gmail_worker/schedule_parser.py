@@ -10,28 +10,39 @@ from psycopg2.extras import execute_values
 from azure_blob_utils import read_schedule_from_blob
 import os
 import pytz
+import logging
 
-# FOR LOCAL TESTING ONLY
-# from dotenv import load_dotenv
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()  # Output to console
+    ]
+)
 
-# load_dotenv()
+# Check if running in Azure Functions environment
+is_azure_function = 'AZURE_FUNCTIONS_ENVIRONMENT' in os.environ
 
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#     handlers=[
-#         logging.StreamHandler()  # Output to console
-#     ]
-# )
+if is_azure_function:
+    PGHOST = os.environ["PGHOST"]
+    PGUSER = os.environ["PGUSER"]
+    PGPASSWORD = os.environ["PGPASSWORD"]
+    PGDBNAME = os.environ["PGDBNAME"]
+    logging.info("Running in Azure Functions environment")
+else:
+    # Local environment - load from .env file
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    PGHOST = os.environ.get("PGHOST")
+    PGUSER = os.environ.get("PGUSER")
+    PGPASSWORD = os.environ.get("PGPASSWORD")
+    PGDBNAME = os.environ.get("PGDBNAME")
+    
+    logging.info("Running in local environment")
 
-# PGHOST = os.environ.get("PGHOST")
-# PGUSER = os.environ.get("PGUSER")
-# PGPASSWORD = os.environ.get("PGPASSWORD")
-
-PGHOST = os.environ["PGHOST"]
-PGUSER = os.environ["PGUSER"]
-PGPASSWORD = os.environ["PGPASSWORD"]
-DB_CONN_STR = f"dbname=postgres user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
+DB_CONN_STR = f"dbname={PGDBNAME} user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
 cached_schedule = {}
 
 # ------------------ Core Logic (from your script) ------------------
@@ -136,49 +147,108 @@ def extract_shifts(tables, week_start):
 
     return schedule
 
+def check_employee_exists(cur, conn, name):
+    # Split name into first and last name
+    name_parts = name.split(',', 1)
+    if len(name_parts) == 2:
+        last_name = name_parts[0].strip()
+        first_name = name_parts[1].strip()
+    else:
+        # If can't split, put everything in first_name
+        first_name = name.strip()
+        last_name = ''
+    
+    # Insert or get employee
+    cur.execute("""
+                SELECT id FROM employees WHERE first_name = %s AND last_name = %s;
+            """, (first_name, last_name))
+
+    employee = cur.fetchone()
+            
+    if employee:
+        # Use the existing employee ID
+        employee_id = employee[0]
+    else:
+        # Insert new employee
+        cur.execute("""
+            INSERT INTO employees (first_name, last_name)
+            VALUES (%s, %s)
+            RETURNING id;
+        """, (first_name, last_name))
+        employee_insert_result = cur.fetchone()
+        if employee_insert_result is None:
+            logging.error(f"Failed to create employee: {first_name} {last_name}")
+        conn.commit()
+        employee_id = employee_insert_result[0]
+
+    return employee_id
+
 def insert_schedule_to_db(schedule, start_date):
     with psycopg2.connect(DB_CONN_STR) as conn:
         with conn.cursor() as cur:
-            for name, shifts in schedule.items():
-                # Insert or get employee
+            # Insert or get the weekly schedule record
+            # First check if a weekly schedule with this date already exists
+            cur.execute("""
+                SELECT id FROM weekly_schedules 
+                WHERE week_start_date = %s
+            """, (start_date,))
+            
+            existing_schedule = cur.fetchone()
+            
+            if existing_schedule:
+                # Use the existing schedule ID
+                weekly_schedule_id = existing_schedule[0]
+            else:
+                # Insert new weekly schedule
                 cur.execute("""
-                    INSERT INTO employees (name)
+                    INSERT INTO weekly_schedules (week_start_date)
                     VALUES (%s)
-                    ON CONFLICT (name) DO NOTHING;
-                """, (name,))
+                    RETURNING id;
+                """, (start_date,))
+                # Get the returned ID
+                schedule_insert_result = cur.fetchone()
+                if schedule_insert_result is None:
+                    logging.error(f"Failed to create weekly schedule for date: {start_date}")
                 conn.commit()
-
-                cur.execute("SELECT id FROM employees WHERE name = %s;", (name,))
-                employee_id = cur.fetchone()[0]
-
+                weekly_schedule_id = schedule_insert_result[0]
+            
+            logging.info(f"Weekly schedule ID: {weekly_schedule_id} for week starting {start_date}")
+            for name, shifts in schedule.items():
+                # Ensure employee exists
+                employee_id = check_employee_exists(cur, conn, name)
                 # Prepare and insert shifts
                 rows = []
                 for shift in shifts:
                     rows.append((
+                        weekly_schedule_id,
                         employee_id,
                         shift['start'],
                         shift['end'],
                         shift.get('type', ''),
                         shift.get('hours', ''),
-                        start_date
                     ))
 
                 sql = """
-                    INSERT INTO schedule_shifts (
-                        employee_id, shift_start, shift_end, shift_type, hours, week_start_date
+                    INSERT INTO shifts (
+                        schedule_id, employee_id, shift_start, shift_end, position, hours
                     )
-                    VALUES %s
-                    ON CONFLICT (employee_id, shift_start, shift_end) DO NOTHING;
+                    VALUES %s;
                 """
                 execute_values(cur, sql, rows)
                 
 def delete_old_shifts(week_start_date):
     with psycopg2.connect(DB_CONN_STR) as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM schedule_shifts WHERE week_start_date = %s;", (week_start_date,))
+            cur.execute("""
+                SELECT s.schedule_id FROM shifts s
+                WHERE s.schedule_id = (
+                    SELECT id FROM weekly_schedules 
+                    WHERE week_start_date = %s
+                )
+            """, (week_start_date,))
             results = cur.fetchall()
             if results:
-                cur.execute("DELETE FROM schedule_shifts WHERE week_start_date = %s;", (week_start_date,))
+                cur.execute("DELETE FROM shifts WHERE schedule_id = %s;", (results[0][0],))
                 conn.commit()
                 logging.info(f"Deleted {cur.rowcount} old shifts for week starting {week_start_date}.")
             else:
@@ -198,10 +268,22 @@ def parse_schedule(blob_name):
         insert_schedule_to_db(cached_schedule, start_date)
         
 def parse_schedule_local():
-    count = 45
+    # Get the count of schedule files in the directory
+    schedule_dir = 'D:\\Projects\\ScheduleExtractor\\gmail_worker\\schedules'
+    
+    # Check if directory exists
+    if not os.path.exists(schedule_dir):
+        logging.error(f"Schedules directory not found: {schedule_dir}")
+        count = 0
+    else:
+        # List all schedule files with pattern schedule_X.pdf
+        schedule_files = [f for f in os.listdir(schedule_dir) if re.match(r'schedule_\d+\.pdf', f)]
+        count = len(schedule_files) - 1
+            
+    logging.info(f"Found {count} schedule files to process")
     while count >= 0:
         logging.info(f"Attempting to parse local schedule file: schedule_{count}.pdf")
-        schedule_path = f'D:\Projects\ScheduleExtractor\gmail_worker\schedules\schedule_{count}.pdf'
+        schedule_path = f'{schedule_dir}\\schedule_{count}.pdf'
         if not os.path.exists(schedule_path):
             logging.error(f"File not found: {schedule_path}")
         else:
