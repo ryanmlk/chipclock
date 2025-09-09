@@ -19,3 +19,4 @@ gmail_worker/token.json
 gmail_worker/*.sql
 *.pdf
 gmail_worker/local_execution.py
+db_scripts/*.sql
