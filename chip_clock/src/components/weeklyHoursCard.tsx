@@ -78,13 +78,13 @@ export function WeeklyHoursCard({ name }: Props) {
   }, [calculateHoursChanged]);
 
   return (
-    <Card className="mt-5 text-white border-none">
+    <Card className="mt-5 text-foreground border-none">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm text-gray-400">Weekly Hours</CardTitle>
+          <CardTitle className="text-sm">Weekly Hours</CardTitle>
           <p className="text-2xl font-bold">
             {hoursChangedPercent > 0 && "+"}
-            {hoursChanged} Hours
+            {weeklyHours[0]?.total_hours || 0} Hours
           </p>
           {hoursChangedPercent > 0 ? (
             <p className="text-green-400 text-sm">
@@ -119,7 +119,8 @@ export function WeeklyHoursCard({ name }: Props) {
             <Line
               type="monotone"
               dataKey="total_hours"
-              stroke="#fff"
+              stroke="var(--color-chart-5)"
+              fill="var(--color-chart-4)"
               strokeWidth={2.5}
               dot={{ r: 4, strokeWidth: 2 }}
               activeDot={{ r: 6, strokeWidth: 2 }}
