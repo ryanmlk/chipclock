@@ -105,6 +105,7 @@ export default function SchedulePage() {
         </CardContent>
       </Card>
       {schedule.length > 0 && <WeeklyHoursCard name={name} />}
+      <GoogleCalendarButton name={name} />
       {/* {(schedule.length > 0) && (<>
       <button className="bg-blue-500 text-white px-3 py-1 ml-3 rounded">
         <a

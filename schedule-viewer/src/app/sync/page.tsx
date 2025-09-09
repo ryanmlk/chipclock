@@ -1,23 +1,30 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export default function SyncPage() {
   const { data: session, status } = useSession();
-  const [schedule, setSchedule] = useState<Shift[]>([]);
   const router = useRouter();
   const hasRun = useRef(false);
 
-  const fetchSchedule = useCallback(async (name: string) => {
+  const fetchSchedule = useCallback(async (name: string): Promise<Shift[]> => {
     const res = await fetch(`/api/schedule?name=${encodeURIComponent(name)}`);
     const data = await res.json();
-    setSchedule(data);
-    return data;
+    if (!Array.isArray(data) || data.length < 1) {
+      console.error("Failed to fetch schedule:", data);
+      return [];
+    }
+    const parsedData = data.map(shift => ({
+      ...shift,
+      shift_start: new Date(shift.shift_start),
+      shift_end: new Date(shift.shift_end),
+    }));
+    return parsedData;
   }, []);
 
-  const createCalendarEvents = useCallback(async () => {
-    const events = schedule.map((shift: Shift) => {
+  const createCalendarEvents = useCallback(async (data: Shift[]) => {
+    const events = data.map((shift: Shift) => {
       return {
         id: shift.id,
         start: shift.shift_start.toISOString(),
@@ -26,27 +33,17 @@ export default function SyncPage() {
         description: "Scheduled work shift",
       };
     });
-    const promises = events.map((event) => {
-      fetch("/api/calendar/add", {
-        method: "POST",
-        body: JSON.stringify({
-          token: session?.accessToken,
-          event: {
-            id: event.id,
-            summary: event.summary,
-            description: event.description,
-            start: event.start,
-            end: event.end,
-          },
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    await fetch("/api/calendar/add", {
+      method: "POST",
+      body: JSON.stringify({
+        token: session?.accessToken,
+        events: events,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
-
-    await Promise.all(promises);
-  }, [schedule, session]);
+  }, [session]);
 
   useEffect(() => {
     async function syncSchedule() {
@@ -58,14 +55,14 @@ export default function SyncPage() {
       console.log("Authenticated, fetching schedule...");
 
       const name = url.searchParams.get("name") || "";
-      await fetchSchedule(name);
-      console.log("Schedule fetched", schedule);
-      await createCalendarEvents();
-      router.replace('/');
+      fetchSchedule(name).then((data: Shift[]) => {
+        console.log("Schedule fetched", data);
+        createCalendarEvents(data).then(() => router.replace('/'))
+      });
     }
 
     syncSchedule();
-  }, [status, router, fetchSchedule, createCalendarEvents, schedule]);
+  }, [status, router, fetchSchedule, createCalendarEvents]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
