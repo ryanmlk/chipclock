@@ -30,7 +30,7 @@ export default function SyncPage() {
         id: shift.id,
         start: shift.shift_start.toISOString(),
         end: shift.shift_end.toISOString(),
-        summary: `Chipotle ${shift.shift_type} Shift`,
+        summary: `Chipotle ${shift.position} Shift`,
         description: "Scheduled work shift",
       };
     });
