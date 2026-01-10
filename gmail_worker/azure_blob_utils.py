@@ -42,3 +42,18 @@ def read_schedule_from_blob(blob_name):
     except Exception as e:
         logging.error(f"Failed to read blob {blob_name}: {e}")
         return None
+    
+def blob_exists(blob_name: str) -> bool:
+    blob_service_client = BlobServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
+    container_client = blob_service_client.get_container_client(AZURE_CONTAINER_NAME)
+    try:
+        blob_client = container_client.get_blob_client(blob_name)
+        blob_client.get_blob_properties()
+        logging.info(f"Blob exists: {blob_name}")
+        return True
+    except Exception as e:
+        if "BlobNotFound" in str(e):
+            logging.info(f"Blob not found: {blob_name}")
+            return False
+        logging.error(f"Error checking blob existence for {blob_name}: {e}")
+        return False

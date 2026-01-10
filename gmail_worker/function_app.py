@@ -37,7 +37,7 @@ def load_credentials_from_keyvault():
         else:
             logging.error("No token found in Azure Key Vault secret.")
 
-@app.schedule(schedule="0 0 16-23 * * *", arg_name="myTimer", run_on_startup=True,
+@app.schedule(schedule="0 0 20-04 * * *", arg_name="myTimer", run_on_startup=True,
               use_monitor=False) 
 def fetch_schedule(myTimer: func.TimerRequest) -> None:
     logging.info('Gmail worker function triggered at %s', datetime.datetime.now(datetime.timezone.utc))

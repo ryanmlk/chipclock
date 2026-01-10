@@ -81,5 +81,48 @@ def fetch_latest_schedule():
     logging.warning("No PDF attachment found.")
     return None
 
-fetch_latest_schedule()
+def fetch_all_schedules():
+    try:
+        service = authenticate_gmail()
+    except Exception as e:
+        logging.error(f"Failed to authenticate Gmail: {e}")
+        return None
+
+    query = 'label:"Chipotle Schedule" has:attachment filename:pdf'
+    try:
+        results = service.users().messages().list(userId='me', q=query, maxResults=10).execute()
+        messages = results.get('messages', [])
+    except HttpError as e:
+        logging.error(f"Error fetching Gmail messages: {e}")
+        return None
+
+    if not messages:
+        logging.info("No matching messages found.")
+        return None
+    
+    for count, message in enumerate(messages):
+        logging.info("Object: %s", message['id'])
+        msg = service.users().messages().get(userId='me', id=message['id']).execute()
+        blob_name = f"schedules/schedule_{count}.pdf"
+        logging.info(f"Processing message {count + 1}/{len(messages)}: {blob_name}")
+
+        # Look for PDF attachment
+        for part in msg['payload'].get('parts', []):
+            if 'filename' in part and part['filename'].endswith('.pdf'):
+                att_id = part['body']['attachmentId']
+                att = service.users().messages().attachments().get(
+                    userId='me',
+                    messageId=msg['id'],
+                    id=att_id
+                ).execute()
+
+                data = base64.urlsafe_b64decode(att['data'].encode('UTF-8'))
+                
+                # Save the PDF to the local file system
+                with open(blob_name, 'wb') as file:
+                    file.write(data)
+                logging.info(f"Saved PDF attachment to {blob_name}")
+
+        logging.warning("No PDF attachment found.")
+        continue
 

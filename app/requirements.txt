@@ -1,7 +1,0 @@
-fastapi
-psycopg2-binary
-uvicorn[standard]
-python-dotenv
-ics
-streamlit
-pandas

@@ -16,3 +16,7 @@ __azurite_db_queue_extent__.json
 __azurite_db_table__.json
 gmail_worker/credentials.json
 gmail_worker/token.json
+gmail_worker/*.sql
+*.pdf
+gmail_worker/local_execution.py
+db_scripts/*.sql
