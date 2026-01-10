@@ -1,44 +1,61 @@
+import prisma from "@/app/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_CONN_STR,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
 
 export async function GET(req: NextRequest) {
   const nameParam = req.nextUrl.searchParams.get("name");
   if (!nameParam) return NextResponse.json([], { status: 400 });
-  
+
   // Split the name by space and clean up each part
-  const names = nameParam.split(' ')
-    .map(part => part.trim())
-    .filter(part => part.length > 0);
-  
+  const names = nameParam
+    .split(" ")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
   // If no valid names after parsing, return 400
   if (names.length === 0) return NextResponse.json([], { status: 400 });
-  
-  // Create ILIKE conditions for each name part
-  const nameConditions = names.map((_, index) => `e.name ILIKE $${index + 1}`).join(' OR ');
-  // Create parameters array with wildcard for each name
-  const name = names.map(name => `%${name}%`);
-  if (!name) return NextResponse.json([], { status: 400 });
 
-  const client = await pool.connect();
+  // Set up query to search for employee schedules by name
   try {
-    const result = await client.query(
-      `SELECT s.id, e.name, s.shift_start, s.shift_end, s.shift_type, s.hours
-        FROM schedule_shifts s
-        JOIN employees e ON s.employee_id = e.id
-        WHERE (${nameConditions})
-            AND s.shift_start >= CURRENT_DATE
-        ORDER BY s.shift_start`,
-      [...name]
+    const scheduleShifts = await prisma.shift.findMany({
+      where: {
+      employee: {
+        OR: [
+        {
+          first_name: {
+          contains: nameParam,
+          mode: "insensitive",
+          },
+        },
+        {
+          last_name: {
+          contains: nameParam,
+          mode: "insensitive",
+          },
+        },
+        ],
+      },
+      shift_start: {
+        gte: new Date(),
+      }
+      },
+      include: {
+      employee: {
+        select: {
+        first_name: true,
+        last_name: true,
+        },
+      },
+      },
+      orderBy: {
+      shift_start: "asc",
+      },
+    });
+
+    return NextResponse.json(scheduleShifts, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to fetch schedule", details: error },
+      { status: 500 }
     );
-    return NextResponse.json(result.rows);
-  } finally {
-    client.release();
   }
 }

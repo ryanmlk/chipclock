@@ -29,7 +29,7 @@ const items = [
   },
   {
     title: "Employees",
-    url: "#",
+    url: "/manage/employees",
     icon: User,
   },
 ]

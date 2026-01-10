@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for employee roles
+enum EmployeeRole {
+  crew
+  manager
+  apprentice
+  service_manager
+  kitchen_manager
+  certified_trainer
+}
+
+// employees
+model Employee {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chipotle_id  Int?          @unique
+  first_name   String
+  last_name    String
+  email        String?       @unique
+  phone        String?
+  role         EmployeeRole  @default(crew)
+  positions    String[]
+  hire_date    DateTime?
+  status       String        @default("active")
+  weekly_hrs   Float?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @default(now())
+  weekly_schedules WeeklySchedule[] @relation("CreatedBy")
+  shifts       Shift[]
+  availability_slots AvailabilitySlot[]
+  availability_exceptions AvailabilityException[]
+  time_off_requests TimeOffRequest[]
+  reviewed_requests TimeOffRequest[] @relation("ReviewedBy")
+  audit_logs   AuditLog[]    @relation("Actor")
+}
+
+// weekly schedule meta (versioned)
+model WeeklySchedule {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_id       String?
+  week_start_date DateTime
+  created_by     String?  @db.Uuid
+  createdAt      DateTime    @default(now())
+  published      Boolean     @default(false)
+  published_at   DateTime?
+  version        Int         @default(1)
+  notes          String?
+  shifts         Shift[]
+  createdBy      Employee?   @relation("CreatedBy", fields: [created_by], references: [id])
+}
+
+// shifts
+model Shift {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  schedule_id  String      @db.Uuid
+  employee_id  String      @db.Uuid
+  shift_start  DateTime
+  shift_end    DateTime
+  position     String?
+  hours        String?
+  created_at   DateTime    @default(now())
+  schedule     WeeklySchedule @relation(fields: [schedule_id], references: [id])
+  employee     Employee      @relation(fields: [employee_id], references: [id])
+}
+
+// availability (recurring weekly availability slots)
+model AvailabilitySlot {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id  String      @db.Uuid
+  day_of_week  Int
+  start_time   DateTime    @db.Time(6)   // stores only time-of-day
+  end_time     DateTime    @db.Time(6)
+  start_date   DateTime?
+  end_date     DateTime?
+  employee     Employee    @relation(fields: [employee_id], references: [id])
+}
+
+// availability exceptions (specific dates off/unavailable)
+model AvailabilityException {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id  String      @db.Uuid
+  date         DateTime
+  start_time   DateTime?
+  end_time     DateTime?
+  is_available Boolean     @default(false)
+  reason       String?
+  employee     Employee    @relation(fields: [employee_id], references: [id])
+}
+
+// time off requests
+model TimeOffRequest {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id  String      @db.Uuid
+  start_date   DateTime
+  end_date     DateTime
+  status       String      @default("pending")
+  requested_at DateTime    @default(now())
+  reviewed_by  String?     @db.Uuid
+  reviewed_at  DateTime?
+  note         String?
+  employee     Employee    @relation(fields: [employee_id], references: [id])
+  reviewedBy   Employee?   @relation("ReviewedBy", fields: [reviewed_by], references: [id])
+}
+
+// audit log
+model AuditLog {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actor_id     String?     @db.Uuid
+  action       String
+  object_type  String?
+  object_id    String?
+  details      Json?
+  created_at   DateTime    @default(now())
+  actor        Employee?   @relation("Actor", fields: [actor_id], references: [id])
+}
+
+
+
+

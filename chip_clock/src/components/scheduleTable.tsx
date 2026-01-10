@@ -1,6 +1,7 @@
 "use client"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Shift } from "@/generated/prisma";
 import { format } from 'date-fns';
 
 type Props = {
@@ -37,7 +38,7 @@ const formatTime = (date: Date): string => {
             <TableCell>{format(shift.shift_start, "EEEE, MMMM do yyyy")}</TableCell>
             <TableCell>{formatTime(shift.shift_start)}</TableCell>
             <TableCell>{formatTime(shift.shift_end)}</TableCell>
-            <TableCell>{shift.shift_type}</TableCell>
+            <TableCell>{shift.position}</TableCell>
             <TableCell>{shift.hours}</TableCell>
           </TableRow>
         ))}
