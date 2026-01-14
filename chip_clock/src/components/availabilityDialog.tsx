@@ -22,21 +22,24 @@ import { CalendarIcon } from "lucide-react";
 import { EmployeeSelect } from "@/components/employeeSelect";
 import { AvailabilitySlot, Employee } from "@/generated/prisma";
 import { Position } from "@/types/enums";
-import { DateTime } from "ics";
-import { on } from "events";
 import { createAvailabilityAPI } from "@/lib/api/availability";
+
+type PropsAvailabilitySlot = AvailabilitySlot & {
+  employee?: Pick<Employee, "first_name" | "last_name" | "positions">;
+  weeklyHrs?: number;
+};
 
 interface FormData {
   employee_id: string | null;
   name: string;
-  position: [Position];
-  monday: [DateTime];
-  tuesday: [DateTime];
-  wednesday: [DateTime];
-  thursday: [DateTime];
-  friday: [DateTime];
-  saturday: [DateTime];
-  sunday: [DateTime];
+  position: Position[];
+  monday: unknown[];
+  tuesday: unknown[];
+  wednesday: unknown[];
+  thursday: unknown[];
+  friday: unknown[];
+  saturday: unknown[];
+  sunday: unknown[];
   effectiveDate: Date;
   weeklyHrs?: number;
 }
@@ -49,13 +52,13 @@ const defaultFormData: FormData = {
   employee_id: null,
   name: "",
   position: [Position.Prep],
-  monday: [""],
-  tuesday: [""],
-  wednesday: [""],
-  thursday: [""],
-  friday: [""],
-  saturday: [""],
-  sunday: [""],
+  monday: [],
+  tuesday: [],
+  wednesday: [],
+  thursday: [],
+  friday: [],
+  saturday: [],
+  sunday: [],
   effectiveDate: new Date(),
   weeklyHrs: 20,
 };
@@ -73,14 +76,14 @@ const days = [
 export default function AvailabilityDialog({
   isOpen,
   onChangeState,
-  editingAvailability,
+  editingSlots,
   positionOptions,
   inputFormData,
   onSave,
 }: {
   isOpen: boolean;
   onChangeState: (state: boolean) => void;
-  editingAvailability: AvailabilitySlot | null;
+  editingSlots: PropsAvailabilitySlot[] | null;
   positionOptions: { value: Position; label: string }[];
   inputFormData: FormData | null;
   onSave: () => void;
@@ -211,31 +214,90 @@ export default function AvailabilityDialog({
     e.preventDefault();
 
     try {
-      if (editingAvailability) {
-        await updateAvailability(editingAvailability.id, formData);
+      if (editingSlots && editingSlots.length > 0) {
+        // For simplicity, we delete and recreate, or we can update. 
+        // Given the array nature, recreation is often safer if the number of slots changes.
+        // But the user asked for "editing", so let's see if we have a bulk update API.
+        // The current createAvailabilityAPI takes an array. 
+        // We'll delete the old ones and create new ones for this employee/start_date combination.
+        const firstSlot = editingSlots[0];
+        const res = await fetch(`/api/availability/delete-group?employee_id=${firstSlot.employee_id}&start_date=${firstSlot.start_date}`, {
+          method: "DELETE"
+        });
+        if (!res.ok) console.warn("Failed to delete old slots, proceeding anyway");
+
+        await createAvailability(formData);
       } else {
         await createAvailability(formData);
       }
       onChangeState(false);
     } catch (error) {
-      // Handle error - maybe show a toast notification
       console.error("Error submitting form:", error);
     }
   };
 
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      effectiveDate: new Date(),
-    }));
-  }, []);
+    if (editingSlots && editingSlots.length > 0) {
+      const firstSlot = editingSlots[0];
+
+      const newAvailability: Availability = {
+        Monday: { enabled: false, start: null, end: null },
+        Tuesday: { enabled: false, start: null, end: null },
+        Wednesday: { enabled: false, start: null, end: null },
+        Thursday: { enabled: false, start: null, end: null },
+        Friday: { enabled: false, start: null, end: null },
+        Saturday: { enabled: false, start: null, end: null },
+        Sunday: { enabled: false, start: null, end: null },
+      };
+
+      const dayMap: Record<number, string> = {
+        1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday", 7: "Sunday"
+      };
+
+      editingSlots.forEach(slot => {
+        const dayName = dayMap[slot.day_of_week];
+        if (dayName) {
+          const start = new Date(slot.start_time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" });
+          const end = new Date(slot.end_time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" });
+          newAvailability[dayName] = { enabled: true, start, end };
+        }
+      });
+
+      setAvailability(newAvailability);
+      setFormData({
+        employee_id: firstSlot.employee_id,
+        name: firstSlot.employee ? `${firstSlot.employee.first_name} ${firstSlot.employee.last_name}` : "",
+        position: (firstSlot.employee?.positions as Position[]) || [Position.Prep],
+        monday: [new Date()],
+        tuesday: [new Date()],
+        wednesday: [new Date()],
+        thursday: [new Date()],
+        friday: [new Date()],
+        saturday: [new Date()],
+        sunday: [new Date()],
+        effectiveDate: new Date(firstSlot.start_date || new Date()),
+        weeklyHrs: firstSlot.weeklyHrs || 0,
+      });
+    } else {
+      setAvailability({
+        Monday: { enabled: false, start: null, end: null },
+        Tuesday: { enabled: false, start: null, end: null },
+        Wednesday: { enabled: false, start: null, end: null },
+        Thursday: { enabled: false, start: null, end: null },
+        Friday: { enabled: false, start: null, end: null },
+        Saturday: { enabled: false, start: null, end: null },
+        Sunday: { enabled: false, start: null, end: null },
+      });
+      setFormData(inputFormData || defaultFormData);
+    }
+  }, [editingSlots, inputFormData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onChangeState}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingAvailability ? "Edit Availability" : "Add New Availability"}
+            {editingSlots ? "Edit Availability" : "Add New Availability"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -129,6 +129,14 @@ model AuditLog {
   actor        Employee?   @relation("Actor", fields: [actor_id], references: [id])
 }
 
+// Labour Matrix (Sales vs. Hours)
+model LabourMatrix {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sales_level  Float       @unique // The sales amount that triggers this hour limit
+  hours_allowed Float
+  updated_at   DateTime    @default(now())
+}
+
 
 
 

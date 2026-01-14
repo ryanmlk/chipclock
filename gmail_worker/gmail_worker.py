@@ -90,7 +90,7 @@ def fetch_all_schedules():
 
     query = 'label:"Chipotle Schedule" has:attachment filename:pdf'
     try:
-        results = service.users().messages().list(userId='me', q=query, maxResults=10).execute()
+        results = service.users().messages().list(userId='me', q=query, maxResults=1).execute()
         messages = results.get('messages', [])
     except HttpError as e:
         logging.error(f"Error fetching Gmail messages: {e}")

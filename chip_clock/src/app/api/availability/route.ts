@@ -9,18 +9,18 @@ export async function GET(req: NextRequest) {
   try {
     const availabilities = await prisma.availabilitySlot.findMany({
       where: {
-      ...(position && position !== "all" 
-        ? { employee: { positions: { has: position } } } 
-        : {}),
-      ...(employee_id 
-        ? { employee: { id: employee_id } } 
-        : {}),
+        ...(position && position !== "all"
+          ? { employee: { positions: { has: position } } }
+          : {}),
+        ...(employee_id
+          ? { employee: { id: employee_id } }
+          : {}),
       },
       include: {
-      employee: true,
+        employee: true,
       },
       orderBy: {
-      employee: { first_name: "asc" },
+        employee: { first_name: "asc" },
       },
     });
 
@@ -53,5 +53,28 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error creating availability:", error);
     return NextResponse.json({ error: "Failed to create availability" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const employee_id = req.nextUrl.searchParams.get("employee_id");
+  const start_date = req.nextUrl.searchParams.get("start_date");
+
+  if (!employee_id || !start_date) {
+    return NextResponse.json({ error: "Missing employee_id or start_date" }, { status: 400 });
+  }
+
+  try {
+    const deleted = await prisma.availabilitySlot.deleteMany({
+      where: {
+        employee_id: employee_id,
+        start_date: new Date(start_date),
+      },
+    });
+
+    return NextResponse.json({ success: true, count: deleted.count });
+  } catch (error) {
+    console.error("Error deleting availability group:", error);
+    return NextResponse.json({ error: "Failed to delete availability group" }, { status: 500 });
   }
 }

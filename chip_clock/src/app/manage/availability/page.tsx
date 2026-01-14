@@ -54,6 +54,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
     bestCoveredDay: "-",
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingSlots, setEditingSlots] = useState<AvailabilitySlot[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const getJobTypeColor = (jobType: Position): string => {
@@ -186,8 +187,8 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       return new Intl.DateTimeFormat("en-US", options).format(timeString);
     };
 
-    return availabilityArray.some((slot) => slot.day_of_week === dayOfWeek)
-      ? availabilityArray
+    const formattedSlots = availabilityArray.some((slot) => slot.day_of_week === dayOfWeek)
+      ? Array.from(new Set(availabilityArray
         .filter((slot) => slot.day_of_week === dayOfWeek)
         .map((slot) => {
           const date = slot.start_date
@@ -202,9 +203,10 @@ const ChipotleAvailabilityTracker: React.FC = () => {
           return `${formatTimeToLocal(startTime)} - ${formatTimeToLocal(
             endTime
           )}`;
-        })
+        })))
         .join(", ")
       : "N/A";
+    return formattedSlots;
   };
 
   const fetchAvailabilities = async () => {
@@ -262,6 +264,12 @@ const ChipotleAvailabilityTracker: React.FC = () => {
   }, [positionFilter, employeeFilter]);
 
   const handleAddAvailability = (): void => {
+    setEditingSlots(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditAvailability = (slots: AvailabilitySlot[]): void => {
+    setEditingSlots(slots);
     setIsModalOpen(true);
   };
 
@@ -285,9 +293,21 @@ const ChipotleAvailabilityTracker: React.FC = () => {
   // };
 
   // UPDATED: Handle delete employee
-  const handleDeleteEmployee = async (id: number): Promise<void> => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      await deleteEmployee(id);
+  const handleDeleteEmployee = async (slots: AvailabilitySlot[]): Promise<void> => {
+    if (window.confirm("Are you sure you want to delete this availability grouping?")) {
+      const firstSlot = slots[0];
+      try {
+        const res = await fetch(`/api/availability?employee_id=${firstSlot.employee_id}&start_date=${firstSlot.start_date}`, {
+          method: "DELETE"
+        });
+        if (res.ok) {
+          refreshData();
+        } else {
+          alert("Failed to delete availability");
+        }
+      } catch (error) {
+        console.error("Error deleting availability group:", error);
+      }
     }
   };
 
@@ -525,14 +545,14 @@ const ChipotleAvailabilityTracker: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                    // onClick={() => handleEditEmployee(availability)}
+                      onClick={() => handleEditAvailability(availabilityArray)}
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                    // onClick={() => handleDeleteEmployee(availability.id)}
+                      onClick={() => handleDeleteEmployee(availabilityArray)}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -546,7 +566,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       <AvailabilityDialog
         isOpen={isModalOpen}
         onChangeState={(state: boolean) => setIsModalOpen(state)}
-        editingAvailability={null}
+        editingSlots={editingSlots}
         positionOptions={positionOptions}
         inputFormData={null}
         onSave={() => refreshData()}
