@@ -16,37 +16,15 @@ import { Settings, TrendingUp, TrendingDown, Target, Calculator } from "lucide-r
 import { Shift } from "@/generated/prisma";
 import { format } from "date-fns";
 
-interface MatrixItem {
-    id: string;
-    sales_level: number;
-    hours_allowed: number;
-}
+import { useLabourStore } from "@/store/useLabourStore";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 const LabourManagementPage = () => {
-    const [matrix, setMatrix] = useState<MatrixItem[]>([]);
-    const [shifts, setShifts] = useState<Shift[]>([]);
-    const [sales, setSales] = useState({ current: "", projection: "" });
-    const [loading, setLoading] = useState(true);
+    const { matrix, shifts, loading, sales, setSales, fetchLabourData } = useLabourStore();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const today = format(new Date(), "yyyy-MM-dd");
-                const [matrixRes, shiftsRes] = await Promise.all([
-                    fetch("/api/labour/matrix"),
-                    fetch(`/api/schedule?start_date=${today}&end_date=${today}T23:59:59`)
-                ]);
-                const matrixData = await matrixRes.json();
-                setMatrix(Array.isArray(matrixData) ? matrixData : []);
-                const shiftsData = await shiftsRes.json();
-                setShifts(Array.isArray(shiftsData) ? shiftsData : []);
-            } catch (error) {
-                console.error("Error fetching labour data:", error);
-            }
-            setLoading(false);
-        };
-        fetchData();
-    }, []);
+        fetchLabourData();
+    }, [fetchLabourData]);
 
     const totalScheduledHours = shifts.reduce((acc, shift) => {
         const h = shift.hours ? parseFloat(shift.hours) : 0;
@@ -61,11 +39,25 @@ const LabourManagementPage = () => {
         return match ? match.hours_allowed : (sorted[sorted.length - 1]?.hours_allowed || 0);
     };
 
+    const now = new Date();
+    const remainingScheduledHours = shifts.reduce((acc, shift) => {
+        const start = new Date(shift.shift_start);
+        const end = new Date(shift.shift_end);
+        if (end <= now) return acc;
+        const effectiveStart = start > now ? start : now;
+        const hours = (end.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60);
+        return acc + hours;
+    }, 0);
+
+    const effectiveCurrentHours = sales.actualHours
+        ? (parseFloat(sales.actualHours) || 0) + remainingScheduledHours
+        : totalScheduledHours;
+
     const currentAllowed = getAllowedHours(parseFloat(sales.current) || 0);
     const projectedAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
 
     const projectedGainLoss = projectedAllowed - totalScheduledHours;
-    const currentGainLoss = currentAllowed - totalScheduledHours;
+    const currentGainLoss = currentAllowed - effectiveCurrentHours;
 
     // Find sales target to match totalScheduledHours
     const findSalesTarget = () => {
@@ -75,7 +67,8 @@ const LabourManagementPage = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative min-h-[400px]">
+            {loading && <LoadingOverlay message="Fetching latest labour data..." />}
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">Labour Management</h1>
@@ -99,6 +92,15 @@ const LabourManagementPage = () => {
                         <CardDescription>Enter today&apos;s sales data</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Current Hours (Worked)</Label>
+                            <Input
+                                type="number"
+                                placeholder="Total hours clocked in"
+                                value={sales.actualHours}
+                                onChange={(e) => setSales({ ...sales, actualHours: e.target.value })}
+                            />
+                        </div>
                         <div className="space-y-2">
                             <Label>Current Sales ($)</Label>
                             <Input
