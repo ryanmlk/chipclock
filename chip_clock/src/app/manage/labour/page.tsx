@@ -31,9 +31,10 @@ const LabourManagementPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const today = format(new Date(), "yyyy-MM-dd");
                 const [matrixRes, shiftsRes] = await Promise.all([
                     fetch("/api/labour/matrix"),
-                    fetch(`/api/schedule?start_date=${new Date().toISOString().split("T")[0]}&end_date=${new Date().toISOString().split("T")[0]}T23:59:59`)
+                    fetch(`/api/schedule?start_date=${today}&end_date=${today}T23:59:59`)
                 ]);
                 const matrixData = await matrixRes.json();
                 setMatrix(Array.isArray(matrixData) ? matrixData : []);
@@ -47,7 +48,10 @@ const LabourManagementPage = () => {
         fetchData();
     }, []);
 
-    const totalScheduledHours = shifts.reduce((acc, shift) => acc + parseFloat(shift.hours || "0"), 0);
+    const totalScheduledHours = shifts.reduce((acc, shift) => {
+        const h = shift.hours ? parseFloat(shift.hours) : 0;
+        return h === 10 ? acc : acc + h;
+    }, 0);
 
     const getAllowedHours = (targetSales: number) => {
         if (matrix.length === 0) return 0;
@@ -117,13 +121,16 @@ const LabourManagementPage = () => {
                 </Card>
 
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card>
+                    <Card className={currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Scheduled</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Current Performance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{totalScheduledHours.toFixed(2)} hrs</div>
-                            <p className="text-xs text-muted-foreground">Based on today&apos;s shifts</p>
+                            <div className={`text-2xl font-bold flex items-center gap-2 ${currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                                {currentGainLoss.toFixed(2)} hrs
+                            </div>
+                            <p className="text-xs text-muted-foreground">Status at ${sales.current || "0"} sales</p>
                         </CardContent>
                     </Card>
 
@@ -173,12 +180,12 @@ const LabourManagementPage = () => {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
                             <div>
-                                <p className="font-semibold">Current Performance</p>
-                                <p className="text-sm text-muted-foreground">Status at ${sales.current || "0"} sales</p>
+                                <p className="font-semibold">Total Scheduled</p>
+                                <p className="text-sm text-muted-foreground">Based on today&apos;s shifts</p>
                             </div>
-                            <Badge variant={currentGainLoss >= 0 ? "outline" : "destructive"} className={`text-sm px-3 py-1 ${currentGainLoss >= 0 ? "bg-green-500/10 text-green-600 border-green-500/20" : ""}`}>
-                                {currentGainLoss.toFixed(2)} hrs
-                            </Badge>
+                            <div className="text-xl font-bold">
+                                {totalScheduledHours.toFixed(2)} hrs
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
