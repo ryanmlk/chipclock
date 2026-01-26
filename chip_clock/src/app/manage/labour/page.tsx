@@ -71,7 +71,7 @@ const LabourManagementPage = () => {
             {loading && <LoadingOverlay message="Fetching latest labour data..." />}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Labour Management</h1>
+                    <h1 className="text-3xl font-bold">Labour Management <p className="text-lg">{now.toDateString()}</p></h1>
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
                 </div>
                 <Button variant="outline" asChild>
