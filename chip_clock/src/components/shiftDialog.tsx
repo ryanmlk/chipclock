@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Employee, Shift } from "@/generated/prisma";
 import { Position } from "@/types/enums";
 import { format } from "date-fns";
+import { formatTimeLocal, formatDateLocal } from "@/lib/dateUtils";
 
 interface ShiftDialogProps {
     isOpen: boolean;
@@ -55,9 +56,9 @@ export function ShiftDialog({
             setFormData({
                 employee_id: shift.employee_id,
                 employee_name: shift.employee ? `${shift.employee.first_name} ${shift.employee.last_name}` : "",
-                date: format(new Date(shift.shift_start), "yyyy-MM-dd"),
-                start_time: format(new Date(shift.shift_start), "HH:mm"),
-                end_time: format(new Date(shift.shift_end), "HH:mm"),
+                date: formatDateLocal(shift.shift_start),
+                start_time: formatTimeLocal(shift.shift_start),
+                end_time: formatTimeLocal(shift.shift_end),
                 position: shift.position || Position.Prep,
             });
         } else if (selectedDate) {
@@ -78,21 +79,15 @@ export function ShiftDialog({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const shiftStart = new Date(`${formData.date}T${formData.start_time}:00`);
-            const shiftEnd = new Date(`${formData.date}T${formData.end_time}:00`);
-
-            // Handle overnight shifts if needed (though unlikely for Chipotle)
-            if (shiftEnd < shiftStart) {
-                shiftEnd.setDate(shiftEnd.getDate() + 1);
-            }
-
             const payload = {
                 id: shift?.id,
                 employee_id: formData.employee_id,
-                shift_start: shiftStart.toISOString(),
-                shift_end: shiftEnd.toISOString(),
+                shift_start: `${formData.date}T${formData.start_time}:00Z`,
+                shift_end: `${formData.date}T${formData.end_time}:00Z`,
                 position: formData.position,
-                hours: ((shiftEnd.getTime() - shiftStart.getTime()) / (1000 * 60 * 60)).toFixed(2),
+                hours: formData.start_time && formData.end_time ?
+                    ((new Date(`1970-01-01T${formData.end_time}`).getTime() - new Date(`1970-01-01T${formData.start_time}`).getTime()) / (1000 * 60 * 60)).toFixed(2)
+                    : "0",
             };
 
             const method = shift ? "PATCH" : "POST";

@@ -6,12 +6,12 @@ export async function GET(req: NextRequest) {
   const endDate = req.nextUrl.searchParams.get("end_date");
   const nameParam = req.nextUrl.searchParams.get("name");
 
-  // Calculate start of current week (Monday)
+  // Calculate start of current week (Monday) in UTC
   const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const currentWeekStart = new Date(now.setDate(diff));
-  currentWeekStart.setHours(0, 0, 0, 0);
+  const day = now.getUTCDay();
+  const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
+  const currentWeekStart = new Date(now.setUTCDate(diff));
+  currentWeekStart.setUTCHours(0, 0, 0, 0);
 
   let effectiveStartDate = startDate ? new Date(startDate) : currentWeekStart;
 
@@ -65,11 +65,11 @@ export async function POST(req: NextRequest) {
 
     if (!schedule_id && shift_start) {
       const startDate = new Date(shift_start);
-      // Find the Monday of that week
-      const day = startDate.getDay();
-      const diff = startDate.getDate() - day + (day === 0 ? -6 : 1);
-      const monday = new Date(startDate.setDate(diff));
-      monday.setHours(0, 0, 0, 0);
+      // Find the Monday of that week using UTC methods to avoid server timezone shifts
+      const day = startDate.getUTCDay();
+      const diff = startDate.getUTCDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(startDate.setUTCDate(diff));
+      monday.setUTCHours(0, 0, 0, 0);
 
       let schedule = await prisma.weeklySchedule.findFirst({
         where: { week_start_date: monday },

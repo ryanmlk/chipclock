@@ -16,53 +16,37 @@ import { Position } from "@/types/enums";
 import { Shift, Employee } from "@/generated/prisma";
 import { ShiftDialog } from "@/components/shiftDialog";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { formatTimeLocal } from "@/lib/dateUtils";
+
+import { useScheduleStore } from "@/store/useScheduleStore";
+import { api } from "@/lib/api";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 type ShiftWithEmployee = Shift & { employee: Employee };
 
 const SchedulePage = () => {
-    const [shifts, setShifts] = useState<ShiftWithEmployee[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const {
+        shifts,
+        loading,
+        selectedDate,
+        view,
+        setSelectedDate,
+        setView,
+        fetchShifts
+    } = useScheduleStore();
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftWithEmployee | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<"daily" | "weekly">("daily");
-
-    const fetchShifts = async () => {
-        setLoading(true);
-        try {
-            const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-            let start = startOfWeek(selectedDate, { weekStartsOn: 1 });
-
-            // Ensure we don't fetch before the current week
-            if (start < currentWeekStart) {
-                start = currentWeekStart;
-            }
-
-            const end = addDays(start, 7);
-            const res = await fetch(
-                `/api/schedule?start_date=${start.toISOString()}&end_date=${end.toISOString()}`
-            );
-            const data = await res.json();
-            setShifts(data);
-        } catch (error) {
-            console.error("Error fetching shifts:", error);
-        }
-        setLoading(false);
-    };
 
     useEffect(() => {
         fetchShifts();
-    }, [selectedDate]);
+    }, [selectedDate, fetchShifts]);
 
     const handleDeleteShift = async (id: string) => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
         try {
-            await fetch(`/api/schedule`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id }),
-            });
-            fetchShifts();
+            await api.labour.deleteShift(id);
+            fetchShifts(true); // force refetch
         } catch (error) {
             console.error("Error deleting shift:", error);
         }
@@ -81,7 +65,8 @@ const SchedulePage = () => {
     const positions = Object.values(Position).filter(p => p !== Position.All);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative min-h-[400px]">
+            {loading && <LoadingOverlay message="Synchronizing shifts..." />}
             <div className="flex flex-wrap items-end gap-4 justify-between">
                 <div className="flex flex-wrap items-end gap-4">
                     <div className="space-y-2">
@@ -144,7 +129,7 @@ const SchedulePage = () => {
                                                     {shift.employee.first_name} {shift.employee.last_name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {format(new Date(shift.shift_start), "HH:mm")} - {format(new Date(shift.shift_end), "HH:mm")}
+                                                    {formatTimeLocal(shift.shift_start)} - {formatTimeLocal(shift.shift_end)}
                                                 </p>
                                             </div>
                                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">

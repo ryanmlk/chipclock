@@ -122,21 +122,20 @@ def extract_shifts(tables, week_start):
                     '$': 'Cashier',
                     'T': 'Tortilla',
                     'E': 'Expo',
-                    'D': 'DML'
+                    'D': 'DML',
+                    'L': 'MOD',
+                    'R': 'Training Cashier',
+                    'W': 'Wash',
+                    'Z': 'Other'
                 }
 
                 if time_range and "-" in time_range:
                     start_time_str, end_time_str = parse_time_range(time_range)
-                    toronto_tz = pytz.timezone("America/Toronto")
                     if start_time_str and end_time_str:
                         date_str = days[day]
                         
-                        start_dt = toronto_tz.localize(
-                            datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
-                        )
-                        end_dt = toronto_tz.localize(
-                            datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
-                        )
+                        start_dt = datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+                        end_dt = datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
 
                         schedule[current_name].append({
                             "start": start_dt.isoformat(),
