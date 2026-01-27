@@ -1,17 +1,10 @@
-/**
- * Extracts "HH:mm" directly from an ISO string, ignoring timezone shifts.
- */
-export function formatTimeLocal(date: string | Date): string {
-    const iso = typeof date === "string" ? date : date.toISOString();
-    const parts = iso.split('T');
-    if (parts.length < 2) return "";
-    return parts[1].substring(0, 5);
-}
+import { format } from "date-fns";
 
 /**
- * Extracts "yyyy-MM-dd" directly from an ISO string, ignoring timezone shifts.
+ * Formats a UTC date string or Date object into "HH:mm" in the browser's local timezone.
  */
-export function formatDateLocal(date: string | Date): string {
-    const iso = typeof date === "string" ? date : date.toISOString();
-    return iso.split('T')[0];
+export function formatTimeLocal(date: string | Date): string {
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "";
+    return format(d, "HH:mm");
 }

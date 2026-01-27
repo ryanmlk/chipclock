@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Shift, Employee } from "@/generated/prisma";
 import { api } from "@/lib/api";
-import { format, startOfWeek, addDays } from "date-fns";
+import { startOfWeek, addDays, addHours } from "date-fns";
 
 type ShiftWithEmployee = Shift & { employee: Employee };
 
@@ -10,10 +10,10 @@ interface ScheduleState {
     loading: boolean;
     selectedDate: Date;
     view: "daily" | "weekly";
-    lastFetchedRange: { start: string; end: string } | null;
+    cachedRange: { start: string; end: string } | null;
     setSelectedDate: (date: Date) => void;
     setView: (view: "daily" | "weekly") => void;
-    fetchShifts: (force?: boolean) => Promise<void>;
+    fetchShifts: (options?: { start?: Date; end?: Date; force?: boolean }) => Promise<void>;
 }
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
@@ -21,38 +21,41 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     loading: false,
     selectedDate: new Date(),
     view: "daily",
-    lastFetchedRange: null,
+    cachedRange: null,
     setSelectedDate: (date) => set({ selectedDate: date }),
     setView: (view) => set({ view }),
-    fetchShifts: async (force = false) => {
-        const { selectedDate, lastFetchedRange, loading } = get();
+    fetchShifts: async (options = {}) => {
+        const { start: reqStart, end: reqEnd, force = false } = options;
+        const { selectedDate, cachedRange, loading } = get();
 
-        const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-        let start = startOfWeek(selectedDate, { weekStartsOn: 1 });
+        // Default to the full week containing selectedDate if no range provided
+        const weekStart = startOfWeek(reqStart || selectedDate, { weekStartsOn: 1 });
+        const start = reqStart || weekStart;
+        let end = reqEnd || addDays(weekStart, 7);
 
-        // Ensure we don't fetch before the current week (matching existing logic)
-        if (start < currentWeekStart) {
-            start = currentWeekStart;
+        // Handle single day fetch (reqStart === reqEnd)
+        if (reqStart && reqEnd && reqStart.getTime() === reqEnd.getTime()) {
+            end = addHours(reqStart, 24);
         }
 
-        const end = addDays(start, 7);
-        const startStr = start.toISOString();
-        const endStr = end.toISOString();
-
-        // Cache check
-        if (!force && lastFetchedRange?.start === startStr && lastFetchedRange?.end === endStr && !loading) {
-            return;
+        // Smart Cache Check: Skip if requested range is within what we already have
+        if (!force && cachedRange && !loading) {
+            const cStart = new Date(cachedRange.start).getTime();
+            const cEnd = new Date(cachedRange.end).getTime();
+            if (start.getTime() >= cStart && end.getTime() <= cEnd) {
+                return;
+            }
         }
 
         set({ loading: true });
         try {
-            const data = await api.labour.getSchedule(startStr, endStr);
+            const data = await api.labour.getSchedule(start.toISOString(), end.toISOString());
             set({
                 shifts: Array.isArray(data) ? data : [],
-                lastFetchedRange: { start: startStr, end: endStr }
+                cachedRange: { start: start.toISOString(), end: end.toISOString() }
             });
         } catch (error) {
-            console.error("Error fetching shifts via store:", error);
+            console.error("Error fetching shifts:", error);
         } finally {
             set({ loading: false });
         }

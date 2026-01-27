@@ -46,7 +46,7 @@ const SchedulePage = () => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
         try {
             await api.labour.deleteShift(id);
-            fetchShifts(true); // force refetch
+            fetchShifts({ force: true }); // force refetch
         } catch (error) {
             console.error("Error deleting shift:", error);
         }

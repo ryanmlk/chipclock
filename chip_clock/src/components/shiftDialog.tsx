@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Employee, Shift } from "@/generated/prisma";
 import { Position } from "@/types/enums";
 import { format } from "date-fns";
-import { formatTimeLocal, formatDateLocal } from "@/lib/dateUtils";
+import { formatTimeLocal } from "@/lib/dateUtils";
 
 interface ShiftDialogProps {
     isOpen: boolean;
@@ -56,7 +56,7 @@ export function ShiftDialog({
             setFormData({
                 employee_id: shift.employee_id,
                 employee_name: shift.employee ? `${shift.employee.first_name} ${shift.employee.last_name}` : "",
-                date: formatDateLocal(shift.shift_start),
+                date: formatTimeLocal(shift.shift_start),
                 start_time: formatTimeLocal(shift.shift_start),
                 end_time: formatTimeLocal(shift.shift_end),
                 position: shift.position || Position.Prep,
@@ -79,15 +79,21 @@ export function ShiftDialog({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const start = new Date(`${formData.date}T${formData.start_time}:00`);
+            const end = new Date(`${formData.date}T${formData.end_time}:00`);
+
+            // Handle overnight shifts if end time is before start time
+            if (end < start) {
+                end.setDate(end.getDate() + 1);
+            }
+
             const payload = {
                 id: shift?.id,
                 employee_id: formData.employee_id,
-                shift_start: `${formData.date}T${formData.start_time}:00Z`,
-                shift_end: `${formData.date}T${formData.end_time}:00Z`,
+                shift_start: start.toISOString(),
+                shift_end: end.toISOString(),
                 position: formData.position,
-                hours: formData.start_time && formData.end_time ?
-                    ((new Date(`1970-01-01T${formData.end_time}`).getTime() - new Date(`1970-01-01T${formData.start_time}`).getTime()) / (1000 * 60 * 60)).toFixed(2)
-                    : "0",
+                hours: ((end.getTime() - start.getTime()) / (1000 * 60 * 60)).toFixed(2),
             };
 
             const method = shift ? "PATCH" : "POST";

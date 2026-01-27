@@ -133,13 +133,18 @@ def extract_shifts(tables, week_start):
                     start_time_str, end_time_str = parse_time_range(time_range)
                     if start_time_str and end_time_str:
                         date_str = days[day]
+                        toronto_tz = pytz.timezone("America/Toronto")
                         
-                        start_dt = datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
-                        end_dt = datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
+                        start_dt = toronto_tz.localize(
+                            datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+                        )
+                        end_dt = toronto_tz.localize(
+                            datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
+                        )
 
                         schedule[current_name].append({
-                            "start": start_dt.isoformat(),
-                            "end": end_dt.isoformat(),
+                            "start": start_dt.astimezone(pytz.utc).isoformat(),
+                            "end": end_dt.astimezone(pytz.utc).isoformat(),
                             "type": shift_types.get(shift_type, shift_type),
                             "hours": hours
                         })

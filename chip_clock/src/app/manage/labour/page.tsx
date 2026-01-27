@@ -13,18 +13,28 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Settings, TrendingUp, TrendingDown, Target, Calculator } from "lucide-react";
-import { Shift } from "@/generated/prisma";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 
 import { useLabourStore } from "@/store/useLabourStore";
+import { useScheduleStore } from "@/store/useScheduleStore";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 const LabourManagementPage = () => {
-    const { matrix, shifts, loading, sales, setSales, fetchLabourData } = useLabourStore();
+    const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
+    const { shifts: allShifts, loading: scheduleLoading, fetchShifts } = useScheduleStore();
 
     useEffect(() => {
         fetchLabourData();
-    }, [fetchLabourData]);
+        // Fetch only today's shifts for this page, store will skip if part of a cached week
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        fetchShifts({ start: today, end: today });
+    }, [fetchLabourData, fetchShifts]);
+
+    const loading = labourLoading || scheduleLoading;
+    const now = new Date();
+    // Filter the global shifts list to only show today's shifts for these calculations
+    const shifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), now));
 
     const totalScheduledHours = shifts.reduce((acc, shift) => {
         const h = shift.hours ? parseFloat(shift.hours) : 0;
@@ -39,7 +49,6 @@ const LabourManagementPage = () => {
         return match ? match.hours_allowed : (sorted[sorted.length - 1]?.hours_allowed || 0);
     };
 
-    const now = new Date();
     const remainingScheduledHours = shifts.reduce((acc, shift) => {
         const start = new Date(shift.shift_start);
         const end = new Date(shift.shift_end);
