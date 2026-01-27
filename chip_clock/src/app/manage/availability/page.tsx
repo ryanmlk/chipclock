@@ -64,10 +64,14 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       [Position.Tortilla]: "bg-orange-600",
       [Position.Line]: "bg-red-500",
       [Position.Prep]: "bg-green-500",
-      [Position.ClosingPrep]: "bg-blue-500",
-      [Position.ClosingSalsa]: "bg-pink-500",
-      [Position.ClosingDml]: "bg-purple-500",
-      [Position.Cash]: "bg-gray-500",
+      [Position.Cash]: "bg-blue-500",
+      [Position.Salsa]: "bg-pink-500",
+      [Position.Dml]: "bg-purple-500",
+      [Position.Mod]: "bg-indigo-500",
+      [Position.Expo]: "bg-teal-500",
+      [Position.Other]: "bg-lime-500",
+      [Position.TrainingCashier]: "bg-orange-500",
+      [Position.Wash]: "bg-blue-400",
     };
     return colors[jobType] || "bg-gray-500";
   };
@@ -109,24 +113,17 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       },
     },
     {
-      value: Position.ClosingPrep,
-      label: "Closing Prep",
+      value: Position.Salsa,
+      label: "Salsa",
       style: {
-        badgeColor: getJobTypeColor(Position.ClosingPrep),
+        badgeColor: getJobTypeColor(Position.Salsa),
       },
     },
     {
-      value: Position.ClosingSalsa,
-      label: "Closing Salsa",
+      value: Position.Dml,
+      label: "DML",
       style: {
-        badgeColor: getJobTypeColor(Position.ClosingSalsa),
-      },
-    },
-    {
-      value: Position.ClosingDml,
-      label: "Closing DML",
-      style: {
-        badgeColor: getJobTypeColor(Position.ClosingDml),
+        badgeColor: getJobTypeColor(Position.Dml),
       },
     },
     {
@@ -134,6 +131,41 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       label: "Cash",
       style: {
         badgeColor: getJobTypeColor(Position.Cash),
+      },
+    },
+    {
+      value: Position.Expo,
+      label: "Expo",
+      style: {
+        badgeColor: getJobTypeColor(Position.Expo),
+      },
+    },
+    {
+      value: Position.Mod,
+      label: "MOD",
+      style: {
+        badgeColor: getJobTypeColor(Position.Mod),
+      },
+    },
+    {
+      value: Position.Wash,
+      label: "Wash",
+      style: {
+        badgeColor: getJobTypeColor(Position.Wash),
+      },
+    },
+    {
+      value: Position.TrainingCashier,
+      label: "Training Cashier",
+      style: {
+        badgeColor: getJobTypeColor(Position.TrainingCashier),
+      },
+    },
+    {
+      value: Position.Other,
+      label: "Other",
+      style: {
+        badgeColor: getJobTypeColor(Position.Other),
       },
     },
   ];
@@ -315,7 +347,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
   const exportToCSV = async (): Promise<void> => {
     try {
       const params = new URLSearchParams();
-      if (positionFilter !== "all") params.append("jobType", positionFilter);
+      if (positionFilter !== Position.All) params.append("jobType", positionFilter);
       if (employeeFilter) params.append("employeeName", employeeFilter);
 
       const response = await fetch(`/api/availability/export?${params}`);
