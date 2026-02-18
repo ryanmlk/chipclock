@@ -28,7 +28,7 @@ if is_azure_function:
     PGHOST = os.environ["PGHOST"]
     PGUSER = os.environ["PGUSER"]
     PGPASSWORD = os.environ["PGPASSWORD"]
-    PGDBNAME = os.environ["PGDBNAME"]
+    PGDATABASE = os.environ["PGDATABASE"]
     logging.info("Running in Azure Functions environment")
 else:
     # Local environment - load from .env file
@@ -38,11 +38,11 @@ else:
     PGHOST = os.environ.get("PGHOST")
     PGUSER = os.environ.get("PGUSER")
     PGPASSWORD = os.environ.get("PGPASSWORD")
-    PGDBNAME = os.environ.get("PGDBNAME")
+    PGDATABASE = os.environ.get("PGDATABASE")
     
     logging.info("Running in local environment")
 
-DB_CONN_STR = f"dbname={PGDBNAME} user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
+DB_CONN_STR = f"dbname={PGDATABASE} user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
 cached_schedule = {}
 
 # ------------------ Core Logic (from your script) ------------------

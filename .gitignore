@@ -20,3 +20,6 @@ gmail_worker/*.sql
 *.pdf
 gmail_worker/local_execution.py
 db_scripts/*.sql
+chip_clock/token.json
+chip_clock/venv/
+chip_clock/api/__pycache__/
