@@ -8,14 +8,14 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
+  --color-sidebar-ring: var(--ring); /* Using general ring for sidebar ring */
+  --color-sidebar-border: var(--border); /* Using general border for sidebar border */
+  --color-sidebar-accent-foreground: var(--accent-foreground); /* Using general accent foreground for sidebar */
+  --color-sidebar-accent: var(--accent); /* Using general accent for sidebar */
+  --color-sidebar-primary-foreground: var(--primary-foreground); /* Using general primary foreground for sidebar */
+  --color-sidebar-primary: var(--primary); /* Using general primary for sidebar */
+  --color-sidebar-foreground: var(--foreground); /* Using general foreground for sidebar */
+  --color-sidebar: var(--background); /* Using general background for sidebar */
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -37,32 +37,32 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 2px); /* Changed from 4px to 2px for consistency with Tailwind config */
+  --radius-md: var(--radius); /* Now default radius */
+  --radius-lg: calc(var(--radius) + 4px); /* Changed from var(--radius) to +4px */
+  --radius-xl: calc(var(--radius) + 8px); /* Added for consistency */
 }
 
 :root {
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.705 0.213 47.604);
-  --primary-foreground: oklch(0.98 0.016 73.684);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.213 47.604);
+  --radius: 0.25rem; /* DEFAULT in tailwind.config.ts */
+  --background: 210 10% 97%; /* #f6f7f8 */
+  --foreground: 222 47% 11%; /* #1c2632 (slate-900 equivalent) */
+  --card: 210 10% 97%; /* #f6f7f8 (light surface) */
+  --card-foreground: 222 47% 11%;
+  --popover: 210 10% 97%; /* #f6f7f8 (light surface) */
+  --popover-foreground: 222 47% 11%;
+  --primary: 212 85% 49%; /* #1978e5 */
+  --primary-foreground: 0 0% 100%; /* White */
+  --secondary: 210 10% 97%; /* #f6f7f8 (light background) */
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 10% 97%;
+  --muted-foreground: 222 47% 11%;
+  --accent: 210 10% 97%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%; /* Red for destructive actions */
+  --border: 210 10% 88%; /* #e2e8f0 (slate-200 equivalent) */
+  --input: 210 10% 88%;
+  --ring: 212 85% 49%;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -79,24 +79,24 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.646 0.222 41.116);
-  --primary-foreground: oklch(0.98 0.016 73.684);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.646 0.222 41.116);
+  --background: 215 29% 10%; /* #111821 */
+  --foreground: 222 100% 97%; /* #f8fafc (slate-100 equivalent) */
+  --card: 0 0% 8%; /* #141414 */
+  --card-foreground: 222 100% 97%;
+  --popover: 0 0% 8%; /* #141414 */
+  --popover-foreground: 222 100% 97%;
+  --primary: 212 85% 49%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 29% 10%;
+  --secondary-foreground: 222 100% 97%;
+  --muted: 215 29% 10%;
+  --muted-foreground: 222 100% 97%;
+  --accent: 215 29% 10%;
+  --accent-foreground: 222 100% 97%;
+  --destructive: 0 84% 60%;
+  --border: 0 0% 15%; /* #262626 */
+  --input: 0 0% 15%;
+  --ring: 212 85% 49%;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
