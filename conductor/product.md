@@ -8,6 +8,10 @@ The Chipotle Schedule Extractor is a comprehensive internal tool designed to str
 
 To empower Chipotle management with an intuitive, efficient, and data-driven platform for labor management, fostering a balanced work-life for employees while optimizing operational efficiency and profitability.
 
+## 2.1 Visual Design Vision
+
+The application's user interface will be modern, clean, and highly functional, guided by the "Kitchen Operations Dashboard" (Stitch Project) design system. This includes a focus on data readability, responsive feedback, and intuitive navigation.
+
 ## 3.0 Minimum Viable Product (MVP)
 
 The MVP will focus on the core functionalities essential for immediate value delivery:
