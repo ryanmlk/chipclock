@@ -17,7 +17,7 @@
 -   **PDF Parsing:** `pdfplumber` or similar library for extracting data from PDF schedules.
 -   **Database Driver:** `psycopg2-binary` for PostgreSQL connectivity.
 -   **Containerization:** Dockerized for containerization.
--   **Future Deployment Target:** Vercel (planned)
+-   **Deployment Target:** Vercel (Next.js API routes with Python runtime)
 
 ## 3.0 Database
 
@@ -29,5 +29,5 @@
 
 -   **Frontend:** Vercel
 -   **Database:** Vercel (PostgreSQL)
--   **Backend:** Dockerized; planned for Vercel deployment.
+-   **Backend:** Vercel (Python Serverless Functions)
 -   **CI/CD:** GitHub Actions for automated testing and deployment.
