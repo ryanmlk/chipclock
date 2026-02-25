@@ -13,7 +13,7 @@ This plan outlines the steps for replacing the heavy PDF parsing library with a 
     - [x] Implement Feature: Remove `pdfplumber` and `ghostscript` dependencies if present.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Library Evaluation and Setup' (Protocol in workflow.md)
 
-## Phase 2: Refactor Extraction Logic
+## Phase 2: Refactor Extraction Logic [checkpoint: 38454ba]
 
 - [x] Task: Refactor PDF Parsing
     - [x] Write Tests: Create unit tests for parsing specific edge cases from the schedule format. Use `@Schedule.pdf` as the reference input file for testing the parser.
