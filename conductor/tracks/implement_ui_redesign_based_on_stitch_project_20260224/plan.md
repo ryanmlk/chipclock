@@ -22,7 +22,7 @@ This plan outlines the steps for implementing the UI redesign of the Chipotle Sc
 
 ## Phase 2: Layout and Navigation Redesign
 
-- [ ] Task: Redesign Application Layout
+- [~] Task: Redesign Application Layout
     - [ ] Write Tests: Create tests for responsiveness of new layout.
     - [ ] Implement Feature: Update `src/app/layout.tsx` to reflect new global layout structure.
     - [ ] Implement Feature: Redesign `appSidebar.tsx` and `navBar.tsx` components.
