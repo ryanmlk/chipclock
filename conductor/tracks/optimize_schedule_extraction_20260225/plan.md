@@ -4,14 +4,14 @@ This plan outlines the steps for replacing the heavy PDF parsing library with a 
 
 ## Phase 1: Library Evaluation and Setup
 
-- [ ] Task: Evaluate and Select Lightweight PDF Library
-    - [ ] Implement Feature: Research `PyMuPDF` (fitz), `pdf.js`, and `pypdf` for footprint size and layout retention capabilities.
-    - [ ] Implement Feature: Select the most appropriate library that satisfies the < 250MB constraint.
-- [ ] Task: Integrate New Library
-    - [ ] Write Tests: Ensure basic test infrastructure exists for the extraction service.
-    - [ ] Implement Feature: Add the chosen library to `requirements.txt`.
-    - [ ] Implement Feature: Remove `pdfplumber` and `ghostscript` dependencies if present.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Library Evaluation and Setup' (Protocol in workflow.md)
+- [x] Task: Evaluate and Select Lightweight PDF Library
+    - [x] Implement Feature: Research `PyMuPDF` (fitz), `pdf.js`, and `pypdf` for footprint size and layout retention capabilities.
+    - [x] Implement Feature: Select the most appropriate library that satisfies the < 250MB constraint.
+- [x] Task: Integrate New Library
+    - [x] Write Tests: Ensure basic test infrastructure exists for the extraction service.
+    - [x] Implement Feature: Add the chosen library to `requirements.txt`.
+    - [x] Implement Feature: Remove `pdfplumber` and `ghostscript` dependencies if present.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Library Evaluation and Setup' (Protocol in workflow.md)
 
 ## Phase 2: Refactor Extraction Logic
 

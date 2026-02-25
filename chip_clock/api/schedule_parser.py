@@ -1,5 +1,5 @@
 import logging
-import camelot
+import pdfplumber
 import fitz
 import re
 from datetime import datetime, timedelta
