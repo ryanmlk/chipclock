@@ -2,7 +2,7 @@
 
 This plan outlines the steps for replacing the heavy PDF parsing library with a lighter alternative and implementing a pre-deployment size check.
 
-## Phase 1: Library Evaluation and Setup
+## Phase 1: Library Evaluation and Setup [checkpoint: 585b0e7]
 
 - [x] Task: Evaluate and Select Lightweight PDF Library
     - [x] Implement Feature: Research `PyMuPDF` (fitz), `pdf.js`, and `pypdf` for footprint size and layout retention capabilities.
