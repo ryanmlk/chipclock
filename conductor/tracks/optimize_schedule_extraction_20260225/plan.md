@@ -15,14 +15,14 @@ This plan outlines the steps for replacing the heavy PDF parsing library with a 
 
 ## Phase 2: Refactor Extraction Logic
 
-- [ ] Task: Refactor PDF Parsing
-    - [ ] Write Tests: Create unit tests for parsing specific edge cases from the schedule format. Use `@Schedule.pdf` as the reference input file for testing the parser.
-    - [ ] Implement Feature: Rewrite the text extraction logic in `schedule_parser.py` using the new library.
-    - [ ] Implement Feature: Ensure accurate extraction of `employee_name`, `position`, `shift_start`, and `shift_end`.
-- [ ] Task: Data Validation against Ground Truth
-    - [ ] Write Tests: Write an integration test that compares the output of the new parser (when run on `@Schedule.pdf`) against `Extracted_Schedule.csv`.
-    - [ ] Implement Feature: Use the provided SQL statement (or its output) to verify the data structure.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Refactor Extraction Logic' (Protocol in workflow.md)
+- [x] Task: Refactor PDF Parsing
+    - [x] Write Tests: Create unit tests for parsing specific edge cases from the schedule format. Use `@Schedule.pdf` as the reference input file for testing the parser.
+    - [x] Implement Feature: Rewrite the text extraction logic in `schedule_parser.py` using the new library.
+    - [x] Implement Feature: Ensure accurate extraction of `employee_name`, `position`, `shift_start`, and `shift_end`.
+- [x] Task: Data Validation against Ground Truth
+    - [x] Write Tests: Write an integration test that compares the output of the new parser (when run on `@Schedule.pdf`) against `Extracted_Schedule.csv`.
+    - [x] Implement Feature: Use the provided SQL statement (or its output) to verify the data structure.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Refactor Extraction Logic' (Protocol in workflow.md)
 
 ## Phase 3: Pre-deployment Size Check
 

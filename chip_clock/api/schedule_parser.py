@@ -91,7 +91,22 @@ def parse_time_range(time_range):
     except Exception:
         return None, None
 
-def extract_shifts(tables, week_start):
+def extract_data_from_pdf(pdf_path):
+    start_date = extract_start_date(pdf_path)
+    if not start_date:
+        return None, None
+        
+    with pdfplumber.open(pdf_path) as pdf:
+        # Assuming schedule is on the first page, or we iterate through all pages
+        schedule = defaultdict(list)
+        for page in pdf.pages:
+            page_schedule = extract_shifts(page, start_date)
+            for name, shifts in page_schedule.items():
+                schedule[name].extend(shifts)
+                
+    return schedule, start_date
+
+def extract_shifts(page, week_start):
     days = [(week_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
     schedule = defaultdict(list)
     shift_types = {
@@ -109,69 +124,115 @@ def extract_shifts(tables, week_start):
     }
     toronto_tz = pytz.timezone("America/Toronto")
 
-    for table in tables:
-        current_name = None
-        df = table.df
-        if df.empty:
-            continue
+    words = page.extract_words()
+    
+    # 1. Find days coordinates
+    day_headers = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    day_x0 = {}
+    for w in words:
+        if w['text'] in day_headers:
+            day_x0[w['text']] = w['x0']
             
-        for _, row in df.iterrows():
-            raw_name = str(row[0]).strip()
+    if not day_x0:
+        return schedule
 
-            if raw_name == "Forecast Sales and Staffing Detail":
-                break
-
-            if is_name_cell(raw_name):
-                current_name = raw_name
-
-            if not current_name:
-                continue
+    sorted_days = sorted(day_x0.keys(), key=lambda d: day_x0[d])
+    day_boundaries = []
+    
+    # Calculate name boundary based on first day
+    name_end = day_x0[sorted_days[0]] - 25
+    
+    for i, d in enumerate(sorted_days):
+        # Left boundary is the midpoint between previous day and this day, or name_end for Monday
+        if i == 0:
+            left = name_end
+        else:
+            left = (day_x0[sorted_days[i-1]] + day_x0[d]) / 2
             
-            # Determine step (2 or 3) based on row length
-            step = 2 if table.shape[1] < 20 else 3
+        # Right boundary is midpoint to next day, or far right for Sunday
+        if i < len(sorted_days) - 1:
+            right = (day_x0[d] + day_x0[sorted_days[i+1]]) / 2
+        else:
+            right = day_x0[d] + 70 
             
-            for day in range(7):
-                col_i = 1 + day * step
-                if col_i + (step - 1) >= table.shape[1]:
-                    continue
+        day_boundaries.append((d, left, right))
 
-                shift_type_code = str(row[col_i]).strip()
-                time_cell = str(row[col_i + 1]).strip()
-                
-                time_range = time_cell
-                hours = ""
-                
-                if step == 2 and "\n" in time_cell:
-                    parts = time_cell.split("\n")
-                    time_range = parts[0].strip()
-                    hours = parts[1].strip() if len(parts) > 1 else ""
-                elif step == 3:
-                    hours = str(row[col_i + 2]).strip()
+    # 2. Group by row using overlapping bounding boxes
+    words.sort(key=lambda w: w['top'])
+    rows = []
+    current_row = []
+    current_bottom = -1
+    
+    for w in words:
+        if not current_row:
+            current_row.append(w)
+            current_bottom = w['bottom']
+        elif w['top'] < current_bottom: 
+            current_row.append(w)
+            current_bottom = max(current_bottom, w['bottom'])
+        else:
+            rows.append(current_row)
+            current_row = [w]
+            current_bottom = w['bottom']
+            
+    if current_row:
+        rows.append(current_row)
 
-                if time_range and "-" in time_range:
-                    start_time_str, end_time_str = parse_time_range(time_range)
-                    if start_time_str and end_time_str:
-                        date_str = days[day]
+    # 3. Parse lines
+    current_employee = None
+    for row_words in rows:
+        row_words.sort(key=lambda w: w['x0'])
+        if not row_words: continue
+        
+        name_words = []
+        for w in row_words:
+            if w['x0'] < day_boundaries[0][1]:
+                name_words.append(w['text'])
+        name = " ".join(name_words).strip()
+        
+        # Check if the name cell actually contains a valid name (has a comma)
+        if ',' in name:
+            current_employee = name
+            
+        if current_employee:
+            # Extract shifts for each day
+            for day_idx, (day_name, left, right) in enumerate(day_boundaries):
+                cell_words = [w['text'] for w in row_words if left <= w['x0'] < right]
+                if cell_words:
+                    # Parse shift components: Type Time-Time Hours
+                    # E.g., 'T', '5:00p-8:00p', '3.00' OR 'T 5:00p-8:00p 3.00'
+                    combined_cell = " ".join(cell_words)
+                    
+                    # Find all time ranges in this cell
+                    time_matches = re.finditer(r'([a-zA-Z\$]?)\s*(\d{1,2}:\d{2}[ap]-\d{1,2}:\d{2}[ap])\s*([\d\.]*)', combined_cell)
+                    
+                    for match in time_matches:
+                        shift_code = match.group(1).strip()
+                        time_range = match.group(2).strip()
+                        hours = match.group(3).strip()
                         
-                        try:
-                            start_dt = toronto_tz.localize(
-                                datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
-                            )
-                            end_dt = toronto_tz.localize(
-                                datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
-                            )
+                        start_time_str, end_time_str = parse_time_range(time_range)
+                        if start_time_str and end_time_str:
+                            date_str = days[day_idx]
+                            try:
+                                start_dt = toronto_tz.localize(
+                                    datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+                                )
+                                end_dt = toronto_tz.localize(
+                                    datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
+                                )
 
-                            if end_dt < start_dt:
-                                end_dt += timedelta(days=1)
+                                if end_dt < start_dt:
+                                    end_dt += timedelta(days=1)
 
-                            schedule[current_name].append({
-                                "start": start_dt.astimezone(pytz.utc).isoformat(),
-                                "end": end_dt.astimezone(pytz.utc).isoformat(),
-                                "type": shift_types.get(shift_type_code, shift_type_code) if shift_type_code else "Crew",
-                                "hours": hours
-                            })
-                        except Exception as e:
-                            logging.debug(f"Error processing shift for {current_name} on {date_str}: {e}")
+                                schedule[current_employee].append({
+                                    "start": start_dt.astimezone(pytz.utc).isoformat(),
+                                    "end": end_dt.astimezone(pytz.utc).isoformat(),
+                                    "type": shift_types.get(shift_code, shift_code) if shift_code else "Crew",
+                                    "hours": hours
+                                })
+                            except Exception as e:
+                                logging.debug(f"Error processing shift for {name} on {date_str}: {e}")
 
     return schedule
 
@@ -259,19 +320,16 @@ def parse_schedule(pdf_source):
         else:
             pdf_path = pdf_source
 
-        start_date = extract_start_date(pdf_path)
-        if not start_date:
-            return False
-
-        tables = camelot.read_pdf(pdf_path, pages="all", flavor="stream")
-        schedule = extract_shifts(tables, start_date)
+        schedule, start_date = extract_data_from_pdf(pdf_path)
         
-        if schedule:
+        if schedule and start_date:
             insert_schedule_to_db(schedule, start_date)
             logging.info(f"Successfully parsed and stored schedule for week starting {start_date.date()}")
             return True
         return False
-        
+    except Exception as e:
+        logging.error(f"Failed to parse schedule for {pdf_path}: {e}")
+        return False
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
@@ -283,8 +341,8 @@ def parse_schedule_local():
         logging.error(f"Schedules directory not found: {schedule_dir}")
         return
 
-    files = [f for f in os.listdir(schedule_dir) if re.match(r'schedule_\d+\.pdf', f)]
-    files.sort(key=lambda x: int(re.search(r'\d+', x).group()))
+    files = [f for f in os.listdir(schedule_dir) if f.lower().endswith('.pdf')]
+    files.sort()
     
     for filename in files:
         path = os.path.join(schedule_dir, filename)
