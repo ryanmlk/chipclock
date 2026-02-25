@@ -2,14 +2,14 @@
 
 ## 1.0 Frontend/Web Application
 
--   **Framework:** Next.js (React.js based) for server-side rendering (SSR) and API routes.
+-   **Framework:** Next.js (React.js based) for server-side rendering (SSR) and API routes (Main Backend).
 -   **Language:** TypeScript
 -   **Styling & Components:** Tailwind CSS, Radix UI for accessible UI components, and **Shadcn** for pre-built, customizable UI components.
 -   **Authentication:** NextAuth.js or Clerk for secure user management and session handling.
 -   **State Management:** Zustand for efficient client-side state management.
 -   **Deployment:** Vercel
 
-## 2.0 Backend (Python Worker/API)
+## 2.0 Backend (Python Worker/API) - strictly for schedule parsing
 
 -   **Language:** Python 3.10+
 -   **Web Framework:** FastAPI (ASGI) for building robust and performant APIs.
