@@ -20,17 +20,17 @@ This plan outlines the steps for implementing the UI redesign of the Chipotle Sc
     - [x] Implement Feature: Update Card components to align with new design.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Setup and Core Component Integration' (Protocol in workflow.md)
 
-## Phase 2: Layout and Navigation Redesign
+## Phase 2: Layout and Navigation Redesign [checkpoint: 1007a12]
 
-- [~] Task: Redesign Application Layout
-    - [ ] Write Tests: Create tests for responsiveness of new layout.
-    - [ ] Implement Feature: Update `src/app/layout.tsx` to reflect new global layout structure.
-    - [ ] Implement Feature: Redesign `appSidebar.tsx` and `navBar.tsx` components.
-- [ ] Task: Update Navigation Menus
-    - [ ] Write Tests: Create tests for navigation functionality.
-    - [ ] Implement Feature: Integrate `navigation-menu.tsx` (or similar) for primary navigation.
-    - [ ] Implement Feature: Ensure all existing navigation links function correctly.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Layout and Navigation Redesign' (Protocol in workflow.md)
+- [x] Task: Redesign Application Layout (e4a22b1)
+    - [x] Write Tests: Create tests for responsiveness of new layout.
+    - [x] Implement Feature: Update `src/app/layout.tsx` to reflect new global layout structure.
+    - [x] Implement Feature: Redesign `appSidebar.tsx` and `navBar.tsx` components.
+- [x] Task: Update Navigation Menus (e4a22b1)
+    - [x] Write Tests: Create tests for navigation functionality.
+    - [x] Implement Feature: Integrate `navigation-menu.tsx` (or similar) for primary navigation.
+    - [x] Implement Feature: Ensure all existing navigation links function correctly.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Layout and Navigation Redesign' (Protocol in workflow.md)
 
 ## Phase 3: Key Page Redesign
 
