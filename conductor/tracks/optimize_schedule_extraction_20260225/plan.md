@@ -24,7 +24,7 @@ This plan outlines the steps for replacing the heavy PDF parsing library with a 
     - [x] Implement Feature: Use the provided SQL statement (or its output) to verify the data structure.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Refactor Extraction Logic' (Protocol in workflow.md)
 
-## Phase 3: Pre-deployment Size Check
+## Phase 3: Pre-deployment Size Check [checkpoint: 3ffabb1]
 
 - [x] Task: Develop Size Estimation Script
     - [x] Write Tests: Not strictly applicable for a bash/utility script, but ensure it handles missing directories gracefully.
