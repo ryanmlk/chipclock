@@ -26,11 +26,11 @@ This plan outlines the steps for replacing the heavy PDF parsing library with a 
 
 ## Phase 3: Pre-deployment Size Check
 
-- [ ] Task: Develop Size Estimation Script
-    - [ ] Write Tests: Not strictly applicable for a bash/utility script, but ensure it handles missing directories gracefully.
-    - [ ] Implement Feature: Create a script (e.g., `check_size.sh` or a node script) that calculates the size of the `.vercel/output/functions` or equivalent deployment directory.
-    - [ ] Implement Feature: Configure the script to exit with an error code if the size exceeds ~240MB (leaving a safety margin).
-- [ ] Task: Integrate Script into Workflow
-    - [ ] Implement Feature: Add the size check script to `package.json` scripts (e.g., `predeploy` or `build:check`).
-    - [ ] Implement Feature: Update documentation (e.g., `README.md`) on how to use the size check.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Pre-deployment Size Check' (Protocol in workflow.md)
+- [x] Task: Develop Size Estimation Script
+    - [x] Write Tests: Not strictly applicable for a bash/utility script, but ensure it handles missing directories gracefully.
+    - [x] Implement Feature: Create a script (e.g., `check_size.sh` or a node script) that calculates the size of the `.vercel/output/functions` or equivalent deployment directory.
+    - [x] Implement Feature: Configure the script to exit with an error code if the size exceeds ~240MB (leaving a safety margin).
+- [x] Task: Integrate Script into Workflow
+    - [x] Implement Feature: Add the size check script to `package.json` scripts (e.g., `predeploy` or `build:check`).
+    - [x] Implement Feature: Update documentation (e.g., `README.md`) on how to use the size check.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Pre-deployment Size Check' (Protocol in workflow.md)

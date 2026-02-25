@@ -10,7 +10,8 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "check:size": "cd .. && ./check_size.sh"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.9",
