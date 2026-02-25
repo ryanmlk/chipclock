@@ -3,44 +3,49 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ThemeToggle } from "./themeToggle";
+import { cn } from "@/lib/utils";
 
 export function NavigationBar() {
-  // const isManager = await checkRole('manager');
   return (
     <NavigationMenu>
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-2">
         <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link href="/">Home</Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        {/* {isManager && (
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href="/manage">Manage</Link>
+          <Link href="/" legacyBehavior passHref>
+            <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted")}>
+              Home
             </NavigationMenuLink>
-          </NavigationMenuItem>
-        )} */}
+          </Link>
+        </NavigationMenuItem>
+        
         <SignedIn>
           <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href="/manage">Management</Link>
-            </NavigationMenuLink>
+            <Link href="/manage" legacyBehavior passHref>
+              <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted")}>
+                Management
+              </NavigationMenuLink>
+            </Link>
           </NavigationMenuItem>
-          <UserButton />
+          <div className="flex items-center gap-2 pl-2">
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </SignedIn>
+
         <SignedOut>
           <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href="/login">Login</Link>
-            </NavigationMenuLink>
+            <Link href="/login" legacyBehavior passHref>
+              <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-muted")}>
+                Login
+              </NavigationMenuLink>
+            </Link>
           </NavigationMenuItem>
         </SignedOut>
-        <NavigationMenuItem>
+
+        <NavigationMenuItem className="pl-2">
           <ThemeToggle />
         </NavigationMenuItem>
       </NavigationMenuList>
