@@ -7,7 +7,7 @@
     "crons": [
         {
             "path": "/api/parse",
-            "schedule": "0 22 * * 4,5,6,0"
+            "schedule": "45 0 * * 4,5,6,0"
         }
     ]
 }
