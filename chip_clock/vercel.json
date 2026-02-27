@@ -1,10 +1,7 @@
 {
     "functions": {
-        "api/test.py": {
-            "maxDuration": 30
-        },
-        "api/test_ts.ts": {
-            "maxDuration": 30
+        "api/parse.py": {
+            "supportsCancellation": false
         }
     },
     "crons": [
