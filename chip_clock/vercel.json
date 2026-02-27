@@ -1,0 +1,13 @@
+{
+    "functions": {
+        "api/parse.py": {
+            "supportsCancellation": false
+        }
+    },
+    "crons": [
+        {
+            "path": "/api/parse",
+            "schedule": "45 0 * * 4,5,6,0"
+        }
+    ]
+}

@@ -1,44 +1,138 @@
+import prisma from "@/app/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_CONN_STR,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
 
 export async function GET(req: NextRequest) {
+  const startDate = req.nextUrl.searchParams.get("start_date");
+  const endDate = req.nextUrl.searchParams.get("end_date");
   const nameParam = req.nextUrl.searchParams.get("name");
-  if (!nameParam) return NextResponse.json([], { status: 400 });
-  
-  // Split the name by space and clean up each part
-  const names = nameParam.split(' ')
-    .map(part => part.trim())
-    .filter(part => part.length > 0);
-  
-  // If no valid names after parsing, return 400
-  if (names.length === 0) return NextResponse.json([], { status: 400 });
-  
-  // Create ILIKE conditions for each name part
-  const nameConditions = names.map((_, index) => `e.name ILIKE $${index + 1}`).join(' OR ');
-  // Create parameters array with wildcard for each name
-  const name = names.map(name => `%${name}%`);
-  if (!name) return NextResponse.json([], { status: 400 });
 
-  const client = await pool.connect();
+  // Calculate start of current week (Monday) in UTC
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
+  const currentWeekStart = new Date(now.setUTCDate(diff));
+  currentWeekStart.setUTCHours(0, 0, 0, 0);
+
+  let effectiveStartDate = startDate ? new Date(startDate) : currentWeekStart;
+
+  // Enforce "current week onwards" rule
+  if (effectiveStartDate < currentWeekStart) {
+    effectiveStartDate = currentWeekStart;
+  }
+
   try {
-    const result = await client.query(
-      `SELECT s.id, e.name, s.shift_start, s.shift_end, s.shift_type, s.hours
-        FROM schedule_shifts s
-        JOIN employees e ON s.employee_id = e.id
-        WHERE (${nameConditions})
-            AND s.shift_start >= CURRENT_DATE
-        ORDER BY s.shift_start`,
-      [...name]
-    );
-    return NextResponse.json(result.rows);
-  } finally {
-    client.release();
+    const shifts = await prisma.shift.findMany({
+      where: {
+        ...(endDate ? {
+          shift_start: {
+            gte: effectiveStartDate,
+            lte: new Date(endDate),
+          }
+        } : {
+          shift_start: {
+            gte: effectiveStartDate,
+          }
+        }),
+        ...(nameParam ? {
+          employee: {
+            OR: [
+              { first_name: { contains: nameParam, mode: "insensitive" } },
+              { last_name: { contains: nameParam, mode: "insensitive" } },
+            ],
+          }
+        } : {}),
+      },
+      include: {
+        employee: true,
+      },
+      orderBy: {
+        shift_start: "asc",
+      },
+    });
+
+    return NextResponse.json(shifts, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
+    return NextResponse.json({ error: "Failed to fetch shifts" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    let { schedule_id } = body;
+    const { shift_start } = body;
+
+    if (!schedule_id && shift_start) {
+      const startDate = new Date(shift_start);
+      // Find the Monday of that week using UTC methods to avoid server timezone shifts
+      const day = startDate.getUTCDay();
+      const diff = startDate.getUTCDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(startDate.setUTCDate(diff));
+      monday.setUTCHours(0, 0, 0, 0);
+
+      let schedule = await prisma.weeklySchedule.findFirst({
+        where: { week_start_date: monday },
+      });
+
+      if (!schedule) {
+        schedule = await prisma.weeklySchedule.create({
+          data: {
+            week_start_date: monday,
+            published: true, // Auto-publish for manual edits?
+          },
+        });
+      }
+      schedule_id = schedule.id;
+    }
+
+    const newShift = await prisma.shift.create({
+      data: {
+        schedule_id: schedule_id,
+        employee_id: body.employee_id,
+        shift_start: new Date(body.shift_start),
+        shift_end: new Date(body.shift_end),
+        position: body.position,
+        hours: body.hours,
+      },
+      include: { employee: true },
+    });
+    return NextResponse.json(newShift, { status: 201 });
+  } catch (error) {
+    console.error("Error creating shift:", error);
+    return NextResponse.json({ error: "Failed to create shift" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, ...data } = body;
+    const updatedShift = await prisma.shift.update({
+      where: { id },
+      data: {
+        ...data,
+        shift_start: data.shift_start ? new Date(data.shift_start) : undefined,
+        shift_end: data.shift_end ? new Date(data.shift_end) : undefined,
+      },
+      include: { employee: true },
+    });
+    return NextResponse.json(updatedShift);
+  } catch (error) {
+    console.error("Error updating shift:", error);
+    return NextResponse.json({ error: "Failed to update shift" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json();
+    await prisma.shift.delete({
+      where: { id },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting shift:", error);
+    return NextResponse.json({ error: "Failed to delete shift" }, { status: 500 });
   }
 }

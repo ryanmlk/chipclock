@@ -1,20 +1,22 @@
-import { AlarmClock, Calendar, ChartAreaIcon, User } from "lucide-react"
+import { AlarmClock, Calendar, ChartAreaIcon, User, Calculator, UtensilsCrossed } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 
 // Menu items.
 const items = [
   {
     title: "Dashboard",
-    url: "#",
+    url: "/manage",
     icon: ChartAreaIcon,
   },
   {
@@ -24,26 +26,42 @@ const items = [
   },
   {
     title: "Schedule",
-    url: "#",
+    url: "/manage/schedule",
     icon: Calendar,
   },
   {
     title: "Employees",
-    url: "#",
+    url: "/manage/employees",
     icon: User,
+  },
+  {
+    title: "Labour Management",
+    url: "/manage/labour",
+    icon: Calculator,
   },
 ]
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar variant="sidebar" collapsible="icon">
+      <SidebarHeader className="h-18 flex items-center px-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+            <UtensilsCrossed className="text-white w-5 h-5" />
+          </div>
+          <span className="font-bold text-lg tracking-tight truncate group-data-[collapsible=icon]:hidden">
+            CHIP<span className="font-light">CLOCK</span>
+          </span>
+        </div>
+      </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>

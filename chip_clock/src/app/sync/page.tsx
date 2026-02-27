@@ -1,4 +1,5 @@
 "use client";
+import { Shift } from "@/generated/prisma";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
@@ -29,7 +30,7 @@ export default function SyncPage() {
         id: shift.id,
         start: shift.shift_start.toISOString(),
         end: shift.shift_end.toISOString(),
-        summary: `Chipotle ${shift.shift_type} Shift`,
+        summary: `Chipotle ${shift.position} Shift`,
         description: "Scheduled work shift",
       };
     });
@@ -52,11 +53,9 @@ export default function SyncPage() {
 
       hasRun.current = true;
       const url = new URL(window.location.href);
-      console.log("Authenticated, fetching schedule...");
 
       const name = url.searchParams.get("name") || "";
       fetchSchedule(name).then((data: Shift[]) => {
-        console.log("Schedule fetched", data);
         createCalendarEvents(data).then(() => router.replace('/'))
       });
     }

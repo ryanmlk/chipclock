@@ -28,7 +28,7 @@ if is_azure_function:
     PGHOST = os.environ["PGHOST"]
     PGUSER = os.environ["PGUSER"]
     PGPASSWORD = os.environ["PGPASSWORD"]
-    PGDBNAME = os.environ["PGDBNAME"]
+    PGDATABASE = os.environ["PGDATABASE"]
     logging.info("Running in Azure Functions environment")
 else:
     # Local environment - load from .env file
@@ -38,11 +38,11 @@ else:
     PGHOST = os.environ.get("PGHOST")
     PGUSER = os.environ.get("PGUSER")
     PGPASSWORD = os.environ.get("PGPASSWORD")
-    PGDBNAME = os.environ.get("PGDBNAME")
+    PGDATABASE = os.environ.get("PGDATABASE")
     
     logging.info("Running in local environment")
 
-DB_CONN_STR = f"dbname={PGDBNAME} user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
+DB_CONN_STR = f"dbname={PGDATABASE} user={PGUSER} host={PGHOST} password={PGPASSWORD} port=5432"
 cached_schedule = {}
 
 # ------------------ Core Logic (from your script) ------------------
@@ -122,14 +122,18 @@ def extract_shifts(tables, week_start):
                     '$': 'Cashier',
                     'T': 'Tortilla',
                     'E': 'Expo',
-                    'D': 'DML'
+                    'D': 'DML',
+                    'L': 'MOD',
+                    'R': 'Training Cashier',
+                    'W': 'Wash',
+                    'Z': 'Other'
                 }
 
                 if time_range and "-" in time_range:
                     start_time_str, end_time_str = parse_time_range(time_range)
-                    toronto_tz = pytz.timezone("America/Toronto")
                     if start_time_str and end_time_str:
                         date_str = days[day]
+                        toronto_tz = pytz.timezone("America/Toronto")
                         
                         start_dt = toronto_tz.localize(
                             datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
@@ -139,8 +143,8 @@ def extract_shifts(tables, week_start):
                         )
 
                         schedule[current_name].append({
-                            "start": start_dt.isoformat(),
-                            "end": end_dt.isoformat(),
+                            "start": start_dt.astimezone(pytz.utc).isoformat(),
+                            "end": end_dt.astimezone(pytz.utc).isoformat(),
                             "type": shift_types.get(shift_type, shift_type),
                             "hours": hours
                         })
@@ -160,7 +164,7 @@ def check_employee_exists(cur, conn, name):
     
     # Insert or get employee
     cur.execute("""
-                SELECT id FROM employees WHERE first_name = %s AND last_name = %s;
+                SELECT id FROM "public"."Employee" WHERE first_name = %s AND last_name = %s;
             """, (first_name, last_name))
 
     employee = cur.fetchone()
@@ -171,7 +175,7 @@ def check_employee_exists(cur, conn, name):
     else:
         # Insert new employee
         cur.execute("""
-            INSERT INTO employees (first_name, last_name)
+            INSERT INTO "public"."Employee" (first_name, last_name)
             VALUES (%s, %s)
             RETURNING id;
         """, (first_name, last_name))
@@ -189,7 +193,7 @@ def insert_schedule_to_db(schedule, start_date):
             # Insert or get the weekly schedule record
             # First check if a weekly schedule with this date already exists
             cur.execute("""
-                SELECT id FROM weekly_schedules 
+                SELECT id FROM "public"."WeeklySchedule" 
                 WHERE week_start_date = %s
             """, (start_date,))
             
@@ -201,7 +205,7 @@ def insert_schedule_to_db(schedule, start_date):
             else:
                 # Insert new weekly schedule
                 cur.execute("""
-                    INSERT INTO weekly_schedules (week_start_date)
+                    INSERT INTO "public"."WeeklySchedule" (week_start_date)
                     VALUES (%s)
                     RETURNING id;
                 """, (start_date,))
@@ -229,7 +233,7 @@ def insert_schedule_to_db(schedule, start_date):
                     ))
 
                 sql = """
-                    INSERT INTO shifts (
+                    INSERT INTO "public"."Shift" (
                         schedule_id, employee_id, shift_start, shift_end, position, hours
                     )
                     VALUES %s;
@@ -240,15 +244,15 @@ def delete_old_shifts(week_start_date):
     with psycopg2.connect(DB_CONN_STR) as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT s.schedule_id FROM shifts s
+                SELECT s.schedule_id FROM "public"."Shift" s
                 WHERE s.schedule_id = (
-                    SELECT id FROM weekly_schedules 
+                    SELECT id FROM "public"."WeeklySchedule"
                     WHERE week_start_date = %s
                 )
             """, (week_start_date,))
             results = cur.fetchall()
             if results:
-                cur.execute("DELETE FROM shifts WHERE schedule_id = %s;", (results[0][0],))
+                cur.execute("""DELETE FROM "public"."Shift" WHERE schedule_id = %s;""", (results[0][0],))
                 conn.commit()
                 logging.info(f"Deleted {cur.rowcount} old shifts for week starting {week_start_date}.")
             else:
@@ -269,7 +273,7 @@ def parse_schedule(blob_name):
         
 def parse_schedule_local():
     # Get the count of schedule files in the directory
-    schedule_dir = 'D:\\Projects\\ScheduleExtractor\\gmail_worker\\schedules'
+    schedule_dir = '/mnt/area51/Projects/ScheduleExtractor/gmail_worker/schedules'
     
     # Check if directory exists
     if not os.path.exists(schedule_dir):
@@ -283,11 +287,12 @@ def parse_schedule_local():
     logging.info(f"Found {count} schedule files to process")
     while count >= 0:
         logging.info(f"Attempting to parse local schedule file: schedule_{count}.pdf")
-        schedule_path = f'{schedule_dir}\\schedule_{count}.pdf'
+        schedule_path = f'{schedule_dir}/schedule_{count}.pdf'
         if not os.path.exists(schedule_path):
             logging.error(f"File not found: {schedule_path}")
         else:
             start_date = extract_start_date(schedule_path)
+            print(start_date)
             if not start_date:
                 logging.error(f"Failed to extract start date from {schedule_path}")
                 count -= 1

@@ -17,6 +17,12 @@ __azurite_db_table__.json
 gmail_worker/credentials.json
 gmail_worker/token.json
 gmail_worker/*.sql
-*.pdf
 gmail_worker/local_execution.py
 db_scripts/*.sql
+chip_clock/token.json
+chip_clock/venv/
+chip_clock/api/__pycache__/
+
+chip_clock/api/local_execution.py
+chip_clock/ScheduleExtractor.code-workspace
+.vercel

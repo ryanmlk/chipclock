@@ -12,12 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Card,
   CardHeader,
   CardTitle,
@@ -25,22 +19,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, Download, Printer } from "lucide-react";
-
-// Type definitions (updated to match API response)
-interface Employee {
-  id: number;
-  name: string;
-  job_type: JobType; // Changed from jobType to job_type
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-  sunday: string;
-  days_hr: string; // Changed from daysHr to days_hr
-  effective_date: string; // Changed from effectiveDate to effective_date
-}
+import { Position } from "@/types/enums";
+import { AvailabilitySlot, Employee } from "@/generated/prisma";
+import AvailabilityDialog from "@/components/availabilityDialog";
+import { fetchAvailabilitiesAPI } from "@/lib/api/availability";
 
 interface Stats {
   totalEmployees: number;
@@ -48,104 +30,222 @@ interface Stats {
   bestCoveredDay: string;
 }
 
-type JobType =
-  | "grill"
-  | "tortilla"
-  | "line"
-  | "prep"
-  | "closing prep"
-  | "closing salsa"
-  | "closing dml"
-  | "cash";
-type DayOfWeek =
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday"
-  | "sunday";
-
-interface JobTypeOption {
-  value: JobType | "all";
+interface PositionOptions {
+  value: Position;
   label: string;
+  style?: { badgeColor: string };
 }
 
-interface FormData {
-  name: string;
-  email: string; // Added email field
-  jobType: JobType;
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-  sunday: string;
-  effectiveDate: string;
-  daysHr?: string; // Optional, will be calculated
+interface FormattedAvailability {
+  [key: string]: (AvailabilitySlot & {
+    employee?: Pick<Employee, "id" | "first_name" | "last_name" | "positions">;
+  })[];
 }
 
 const ChipotleAvailabilityTracker: React.FC = () => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-  const [jobFilter, setJobFilter] = useState<JobType | "all">("all");
+  const [filteredAvailability, setFilteredAvailabilities] =
+    useState<FormattedAvailability>({});
+  const [positionFilter, setPositionFilter] = useState<Position>(Position.All);
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [weekStart, setWeekStart] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [stats, setStats] = useState<Stats>({
     totalEmployees: 0,
     availableToday: 0,
     bestCoveredDay: "-",
   });
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingSlots, setEditingSlots] = useState<AvailabilitySlot[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    jobType: "grill",
-    monday: "",
-    tuesday: "",
-    wednesday: "",
-    thursday: "",
-    friday: "",
-    saturday: "",
-    sunday: "",
-    effectiveDate: "",
-    daysHr: "",
-  });
 
-  const jobTypes: JobTypeOption[] = [
-    { value: "all", label: "All Positions" },
-    { value: "grill", label: "Grill" },
-    { value: "tortilla", label: "Tortilla" },
-    { value: "line", label: "Line" },
-    { value: "prep", label: "Prep" },
-    { value: "closing prep", label: "Closing Prep" },
-    { value: "closing salsa", label: "Closing Salsa" },
-    { value: "closing dml", label: "Closing DML" },
-    { value: "cash", label: "Cash" },
+  const getJobTypeColor = (jobType: Position): string => {
+    const colors: Record<Position, string> = {
+      [Position.All]: "bg-gray-500",
+      [Position.Grill]: "bg-amber-700",
+      [Position.Tortilla]: "bg-orange-600",
+      [Position.Line]: "bg-red-500",
+      [Position.Prep]: "bg-green-500",
+      [Position.Cash]: "bg-blue-500",
+      [Position.Salsa]: "bg-pink-500",
+      [Position.Dml]: "bg-purple-500",
+      [Position.Mod]: "bg-indigo-500",
+      [Position.Expo]: "bg-teal-500",
+      [Position.Other]: "bg-lime-500",
+      [Position.TrainingCashier]: "bg-orange-500",
+      [Position.Wash]: "bg-blue-400",
+    };
+    return colors[jobType] || "bg-gray-500";
+  };
+
+  const positionOptions: PositionOptions[] = [
+    {
+      value: Position.All,
+      label: "All Positions",
+      style: {
+        badgeColor: getJobTypeColor(Position.All),
+      },
+    },
+    {
+      value: Position.Grill,
+      label: "Grill",
+      style: {
+        badgeColor: getJobTypeColor(Position.Grill),
+      },
+    },
+    {
+      value: Position.Tortilla,
+      label: "Tortilla",
+      style: {
+        badgeColor: getJobTypeColor(Position.Tortilla),
+      },
+    },
+    {
+      value: Position.Line,
+      label: "Line",
+      style: {
+        badgeColor: getJobTypeColor(Position.Line),
+      },
+    },
+    {
+      value: Position.Prep,
+      label: "Prep",
+      style: {
+        badgeColor: getJobTypeColor(Position.Prep),
+      },
+    },
+    {
+      value: Position.Salsa,
+      label: "Salsa",
+      style: {
+        badgeColor: getJobTypeColor(Position.Salsa),
+      },
+    },
+    {
+      value: Position.Dml,
+      label: "DML",
+      style: {
+        badgeColor: getJobTypeColor(Position.Dml),
+      },
+    },
+    {
+      value: Position.Cash,
+      label: "Cash",
+      style: {
+        badgeColor: getJobTypeColor(Position.Cash),
+      },
+    },
+    {
+      value: Position.Expo,
+      label: "Expo",
+      style: {
+        badgeColor: getJobTypeColor(Position.Expo),
+      },
+    },
+    {
+      value: Position.Mod,
+      label: "MOD",
+      style: {
+        badgeColor: getJobTypeColor(Position.Mod),
+      },
+    },
+    {
+      value: Position.Wash,
+      label: "Wash",
+      style: {
+        badgeColor: getJobTypeColor(Position.Wash),
+      },
+    },
+    {
+      value: Position.TrainingCashier,
+      label: "Training Cashier",
+      style: {
+        badgeColor: getJobTypeColor(Position.TrainingCashier),
+      },
+    },
+    {
+      value: Position.Other,
+      label: "Other",
+      style: {
+        badgeColor: getJobTypeColor(Position.Other),
+      },
+    },
   ];
 
-  // API FUNCTIONS - NEW
-  const fetchEmployees = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (jobFilter !== "all") params.append("jobType", jobFilter);
-      if (employeeFilter) params.append("employeeName", employeeFilter);
+  const formatAvailabilities = (
+    availabilities: (AvailabilitySlot & {
+      employee?: Pick<
+        Employee,
+        "id" | "first_name" | "last_name" | "positions"
+      >;
+    })[]
+  ): FormattedAvailability => {
+    // Group availabilities by employee ID and start date
+    return availabilities.reduce((grouped, availability) => {
+      // Create a unique key combining employee ID and start date
+      const employeeId = availability.employee?.id || 0;
+      const startDate = availability.start_date
+        ? new Date(availability.start_date).toISOString().split("T")[0]
+        : "unknown";
+      const key = `${employeeId}-${startDate}`;
 
-      const response = await fetch(`/api/availability?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch employees");
+      // If this is the first availability for this employee/date, create a new array
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
 
-      const data = await response.json();
-      setEmployees(data);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      // You might want to add toast notification here
-    } finally {
-      setLoading(false);
-    }
+      // Add the availability to the appropriate group
+      grouped[key].push(availability);
+
+      return grouped;
+    }, {} as FormattedAvailability);
+  };
+
+  const formatAvailabilityTime = (
+    availabilityArray: AvailabilitySlot[],
+    dayOfWeek: number
+  ): string => {
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "America/New_York",
+    };
+
+    const combineDateAndTime = (date: string, time: string): Date => {
+      const combined = date.split("T")[0] + "T" + time.split("T")[1];
+      return new Date(combined);
+    };
+
+    const formatTimeToLocal = (timeString: Date) => {
+      return new Intl.DateTimeFormat("en-US", options).format(timeString);
+    };
+
+    const formattedSlots = availabilityArray.some((slot) => slot.day_of_week === dayOfWeek)
+      ? Array.from(new Set(availabilityArray
+        .filter((slot) => slot.day_of_week === dayOfWeek)
+        .map((slot) => {
+          const date = slot.start_date
+            ? slot.start_date.toString()
+            : new Date().toString();
+          const startTime = combineDateAndTime(
+            date,
+            slot.start_time.toString()
+          );
+          const endTime = combineDateAndTime(date, slot.end_time.toString());
+
+          return `${formatTimeToLocal(startTime)} - ${formatTimeToLocal(
+            endTime
+          )}`;
+        })))
+        .join(", ")
+      : "N/A";
+    return formattedSlots;
+  };
+
+  const fetchAvailabilities = async () => {
+    setLoading(true);
+    const data = await fetchAvailabilitiesAPI(positionFilter, employeeFilter);
+    setFilteredAvailabilities(formatAvailabilities(data!));
+    setLoading(false);
   };
 
   const fetchStats = async () => {
@@ -160,74 +260,6 @@ const ChipotleAvailabilityTracker: React.FC = () => {
     }
   };
 
-  const createEmployee = async (formData: FormData) => {
-    try {
-      const response = await fetch("/api/availability", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          jobType: formData.jobType,
-          monday: formData.monday,
-          tuesday: formData.tuesday,
-          wednesday: formData.wednesday,
-          thursday: formData.thursday,
-          friday: formData.friday,
-          saturday: formData.saturday,
-          sunday: formData.sunday,
-          daysHr: formData.daysHr || calculateDaysHours(formData),
-          effectiveDate: formData.effectiveDate,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to create employee");
-
-      // Refresh data after creation
-      await fetchEmployees();
-      await fetchStats();
-    } catch (error) {
-      console.error("Error creating employee:", error);
-      throw error;
-    }
-  };
-
-  const updateEmployee = async (id: number, formData: FormData) => {
-    try {
-      const response = await fetch(`/api/availability/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          jobType: formData.jobType,
-          monday: formData.monday,
-          tuesday: formData.tuesday,
-          wednesday: formData.wednesday,
-          thursday: formData.thursday,
-          friday: formData.friday,
-          saturday: formData.saturday,
-          sunday: formData.sunday,
-          daysHr: formData.daysHr || calculateDaysHours(formData),
-          effectiveDate: formData.effectiveDate,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update employee");
-
-      // Refresh data after update
-      await fetchEmployees();
-      await fetchStats();
-    } catch (error) {
-      console.error("Error updating employee:", error);
-      throw error;
-    }
-  };
-
   const deleteEmployee = async (id: number) => {
     try {
       const response = await fetch(`/api/availability/${id}`, {
@@ -235,74 +267,10 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       });
 
       if (!response.ok) throw new Error("Failed to delete employee");
-
-      // Refresh data after deletion
-      await fetchEmployees();
-      await fetchStats();
     } catch (error) {
       console.error("Error deleting employee:", error);
       throw error;
     }
-  };
-
-  const quickEditEmployee = async (
-    id: number,
-    day: DayOfWeek,
-    value: string
-  ) => {
-    try {
-      const response = await fetch(`/api/availability/${id}/quick-edit`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          day,
-          value,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update employee");
-
-      // Refresh data after update
-      await fetchEmployees();
-      await fetchStats();
-    } catch (error) {
-      console.error("Error updating employee:", error);
-      throw error;
-    }
-  };
-
-  const getJobTypeColor = (jobType: JobType): string => {
-    const colors: Record<JobType, string> = {
-      grill: "bg-amber-700",
-      tortilla: "bg-orange-600",
-      line: "bg-red-500",
-      prep: "bg-green-500",
-      "closing prep": "bg-blue-500",
-      "closing salsa": "bg-pink-500",
-      "closing dml": "bg-purple-500",
-      cash: "bg-gray-500",
-    };
-    return colors[jobType] || "bg-gray-500";
-  };
-
-  const calculateDaysHours = (
-    schedule: Omit<FormData, "name" | "email" | "jobType" | "effectiveDate">
-  ): string => {
-    const days: string[] = [
-      schedule.monday,
-      schedule.tuesday,
-      schedule.wednesday,
-      schedule.thursday,
-      schedule.friday,
-      schedule.saturday,
-      schedule.sunday,
-    ];
-    const workingDays = days.filter(
-      (day) => day && day !== "N/A" && day.trim() !== ""
-    ).length;
-    return workingDays > 4 ? "40" : workingDays > 2 ? "30" : "PT";
   };
 
   const getMonday = (date: Date): Date => {
@@ -312,120 +280,74 @@ const ChipotleAvailabilityTracker: React.FC = () => {
     return new Date(d.setDate(diff));
   };
 
-  // UPDATED: Load data on component mount and when filters change
+  const refreshData = () => {
+    fetchAvailabilities();
+    // fetchStats();
+  };
+
   useEffect(() => {
     setWeekStart(getMonday(new Date()).toISOString().split("T")[0]);
-    setFormData((prev) => ({
-      ...prev,
-      effectiveDate: new Date().toISOString().split("T")[0],
-    }));
-
-    // Initial data load
-    fetchEmployees();
-    fetchStats();
+    refreshData();
   }, []);
 
   // UPDATED: Fetch data when filters change
   useEffect(() => {
-    fetchEmployees();
-  }, [jobFilter, employeeFilter]);
+    refreshData();
+  }, [positionFilter, employeeFilter]);
 
-  // UPDATED: Filter employees locally (since API handles filtering now)
-  useEffect(() => {
-    setFilteredEmployees(employees);
-  }, [employees]);
+  const handleAddAvailability = (): void => {
+    setEditingSlots(null);
+    setIsModalOpen(true);
+  };
 
-  const handleAddEmployee = (): void => {
-    setEditingEmployee(null);
-    setFormData({
-      name: "",
-      email: "",
-      jobType: "grill",
-      monday: "",
-      tuesday: "",
-      wednesday: "",
-      thursday: "",
-      friday: "",
-      saturday: "",
-      sunday: "",
-      effectiveDate: new Date().toISOString().split("T")[0],
-      daysHr: "",
-    });
+  const handleEditAvailability = (slots: AvailabilitySlot[]): void => {
+    setEditingSlots(slots);
     setIsModalOpen(true);
   };
 
   // UPDATED: Handle edit employee
-  const handleEditEmployee = (employee: Employee): void => {
-    setEditingEmployee(employee);
-    setFormData({
-      name: employee.name,
-      email: "", // You might want to store email in the employee object
-      jobType: employee.job_type,
-      monday: employee.monday || "",
-      tuesday: employee.tuesday || "",
-      wednesday: employee.wednesday || "",
-      thursday: employee.thursday || "",
-      friday: employee.friday || "",
-      saturday: employee.saturday || "",
-      sunday: employee.sunday || "",
-      effectiveDate: employee.effective_date,
-      daysHr: employee.days_hr,
-    });
-    setIsModalOpen(true);
-  };
+  // const handleEditAvailability = (availability: AvailabilitySlot): void => {
+  //   setEditingAvailability(availability);
+  //   setFormData({
+  //     employee_id: availability.employee_id,
+  //     position: availability.pos,
+  //     monday: availability.monday || "",
+  //     tuesday: availability.tuesday || "",
+  //     wednesday: availability.wednesday || "",
+  //     thursday: availability.thursday || "",
+  //     friday: availability.friday || "",
+  //     saturday: availability.saturday || "",
+  //     sunday: availability.sunday || "",
+  //     effectiveDate: availability.effectiveDate,
+  //     daysHr: availability.daysHr,
+  //   });
+  //   setIsModalOpen(true);
+  // };
 
   // UPDATED: Handle delete employee
-  const handleDeleteEmployee = async (id: number): Promise<void> => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      await deleteEmployee(id);
-    }
-  };
-
-  // UPDATED: Handle quick edit
-  const handleQuickEdit = async (
-    employeeId: number,
-    day: DayOfWeek
-  ): Promise<void> => {
-    const employee = employees.find((emp) => emp.id === employeeId);
-    if (!employee) return;
-
-    const newValue = window.prompt(
-      `Enter availability for ${day}:`,
-      employee[day] || ""
-    );
-    if (newValue !== null) {
-      await quickEditEmployee(employeeId, day, newValue);
-    }
-  };
-
-  // UPDATED: Handle form submit
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
-
-    try {
-      if (editingEmployee) {
-        await updateEmployee(editingEmployee.id, formData);
-      } else {
-        await createEmployee(formData);
+  const handleDeleteEmployee = async (slots: AvailabilitySlot[]): Promise<void> => {
+    if (window.confirm("Are you sure you want to delete this availability grouping?")) {
+      const firstSlot = slots[0];
+      try {
+        const res = await fetch(`/api/availability?employee_id=${firstSlot.employee_id}&start_date=${firstSlot.start_date}`, {
+          method: "DELETE"
+        });
+        if (res.ok) {
+          refreshData();
+        } else {
+          alert("Failed to delete availability");
+        }
+      } catch (error) {
+        console.error("Error deleting availability group:", error);
       }
-      setIsModalOpen(false);
-    } catch (error) {
-      // Handle error - maybe show a toast notification
-      console.error("Error submitting form:", error);
     }
-  };
-
-  const handleFormChange = (field: keyof FormData, value: string): void => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   // UPDATED: Export CSV function
   const exportToCSV = async (): Promise<void> => {
     try {
       const params = new URLSearchParams();
-      if (jobFilter !== "all") params.append("jobType", jobFilter);
+      if (positionFilter !== Position.All) params.append("jobType", positionFilter);
       if (employeeFilter) params.append("employeeName", employeeFilter);
 
       const response = await fetch(`/api/availability/export?${params}`);
@@ -448,7 +370,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
   };
 
   // Show loading state
-  if (loading && employees.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -463,14 +385,14 @@ const ChipotleAvailabilityTracker: React.FC = () => {
         <div className="space-y-2">
           <Label>Filter by Job Type</Label>
           <Select
-            value={jobFilter}
-            onValueChange={(value: JobType | "all") => setJobFilter(value)}
+            value={positionFilter}
+            onValueChange={(value: Position) => setPositionFilter(value)}
           >
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {jobTypes.map((type) => (
+              {positionOptions.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
                 </SelectItem>
@@ -504,11 +426,11 @@ const ChipotleAvailabilityTracker: React.FC = () => {
         </div>
 
         <Button
-          onClick={handleAddEmployee}
+          onClick={handleAddAvailability}
           className="bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Employee
+          Add Availability
         </Button>
 
         <Button variant="outline" onClick={exportToCSV}>
@@ -600,208 +522,87 @@ const ChipotleAvailabilityTracker: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredEmployees.map((employee) => (
-              <tr key={employee.id} className="hover:bg-sidebar-accent">
-                <td className="font-medium left-0 bg-sidebar p-3 border border-sidebar-border">
-                  {employee.name}
-                </td>
-                <td className="p-3 border border-sidebar-border text-center">
-                  <Badge
-                    className={`${getJobTypeColor(
-                      employee.job_type
-                    )} text-white`}
-                  >
-                    {employee.job_type.toUpperCase()}
-                  </Badge>
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "monday")}
-                >
-                  {employee.monday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "tuesday")}
-                >
-                  {employee.tuesday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "wednesday")}
-                >
-                  {employee.wednesday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "thursday")}
-                >
-                  {employee.thursday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "friday")}
-                >
-                  {employee.friday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "saturday")}
-                >
-                  {employee.saturday || "N/A"}
-                </td>
-                <td
-                  className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground"
-                  onClick={() => handleQuickEdit(employee.id, "sunday")}
-                >
-                  {employee.sunday || "N/A"}
-                </td>
-                <td className="p-3 border border-sidebar-border text-center text-foreground">
-                  {employee.days_hr}
-                </td>
-                <td className="p-3 border border-sidebar-border text-center text-foreground">
-                  {new Date(employee.effective_date).toLocaleDateString()}
-                </td>
-                <td className="p-3 border border-sidebar-border text-center space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditEmployee(employee)}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDeleteEmployee(employee.id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {Object.entries(filteredAvailability).map(
+              ([key, availabilityArray]) => (
+                <tr key={`${key}`} className="hover:bg-sidebar-accent">
+                  <td className="font-medium left-0 bg-sidebar p-3 border border-sidebar-border">
+                    {filteredAvailability[key][0].employee
+                      ? `${filteredAvailability[key][0].employee?.first_name} ${filteredAvailability[key][0].employee?.last_name}`
+                      : "N/A"}
+                  </td>
+                  <td className="p-3 border border-sidebar-border text-center">
+                    <Badge
+                      className={`${getJobTypeColor(
+                        (filteredAvailability[key][0].employee
+                          ?.positions[0] as Position) || Position.All
+                      )} text-white`}
+                    >
+                      {filteredAvailability[
+                        key
+                      ][0].employee?.positions[0]?.toUpperCase() || "N/A"}
+                    </Badge>
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 1)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 2)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 3)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 4)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 5)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 6)}
+                  </td>
+                  <td className="cursor-pointer hover:bg-gray-400 p-3 border border-sidebar-border text-center text-foreground">
+                    {formatAvailabilityTime(availabilityArray, 7)}
+                  </td>
+                  <td className="p-3 border border-sidebar-border text-center text-foreground">
+                    {/* {availability.days_hr} */} 0
+                  </td>
+                  <td className="p-3 border border-sidebar-border text-center text-foreground">
+                    {availabilityArray[0].start_date
+                      ? new Date(availabilityArray[0].start_date)
+                        .toISOString()
+                        .split("T")[0]
+                      : "N/A"}
+                  </td>
+                  <td className="p-3 border border-sidebar-border text-center space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditAvailability(availabilityArray)}
+                    >
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteEmployee(availabilityArray)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* UPDATED: Modal with email field */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingEmployee ? "Edit Employee" : "Add New Employee"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Employee Name</Label>
-              <Input
-                required
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormChange("name", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Email (Optional)</Label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormChange("email", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Hrs Per Week</Label>
-              <Input
-                value={formData.daysHr}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormChange("daysHr", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Primary Job Type</Label>
-              <Select
-                value={formData.jobType}
-                onValueChange={(value: JobType) =>
-                  handleFormChange("jobType", value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobTypes.slice(1).map((type) => (
-                    <SelectItem key={type.value} value={type.value as JobType}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Effective Date</Label>
-              <Input
-                type="date"
-                required
-                value={formData.effectiveDate}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleFormChange("effectiveDate", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">
-                Weekly Availability
-              </Label>
-
-              {(
-                [
-                  "monday",
-                  "tuesday",
-                  "wednesday",
-                  "thursday",
-                  "friday",
-                  "saturday",
-                  "sunday",
-                ] as DayOfWeek[]
-              ).map((day) => (
-                <div key={day} className="space-y-1">
-                  <Label className="capitalize">{day}</Label>
-                  <Input
-                    placeholder="e.g., 9am-5pm, A/T, N/A"
-                    value={formData[day]}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      handleFormChange(day, e.target.value)
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save Employee
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <AvailabilityDialog
+        isOpen={isModalOpen}
+        onChangeState={(state: boolean) => setIsModalOpen(state)}
+        editingSlots={editingSlots}
+        positionOptions={positionOptions}
+        inputFormData={null}
+        onSave={() => refreshData()}
+      />
     </div>
   );
 };
