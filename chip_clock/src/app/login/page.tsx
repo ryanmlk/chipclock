@@ -4,7 +4,7 @@ import { SignIn } from "@clerk/nextjs";
 
 export default function LoginPage() {
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
+    <div className="flex h-screen items-center justify-center bg-background">
       <SignIn path="/login" routing="path" signUpUrl="/signup" />
     </div>
   );
