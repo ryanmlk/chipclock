@@ -4,68 +4,99 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--ring);
-  /* Using general ring for sidebar ring */
-  --color-sidebar-border: var(--border);
-  /* Using general border for sidebar border */
-  --color-sidebar-accent-foreground: var(--accent-foreground);
-  /* Using general accent foreground for sidebar */
-  --color-sidebar-accent: var(--accent);
-  /* Using general accent for sidebar */
-  --color-sidebar-primary-foreground: var(--primary-foreground);
-  /* Using general primary foreground for sidebar */
-  --color-sidebar-primary: var(--primary);
-  /* Using general primary for sidebar */
-  --color-sidebar-foreground: var(--foreground);
-  /* Using general foreground for sidebar */
-  --color-sidebar: var(--background);
-  /* Using general background for sidebar */
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-sidebar-ring: hsl(var(--ring));
+  --color-sidebar-border: hsl(var(--border));
+  --color-sidebar-accent-foreground: hsl(var(--accent-foreground));
+  --color-sidebar-accent: hsl(var(--accent));
+  --color-sidebar-primary-foreground: hsl(var(--primary-foreground));
+  --color-sidebar-primary: hsl(var(--primary));
+  --color-sidebar-foreground: hsl(var(--foreground));
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-ring: hsl(var(--ring));
+  --color-input: hsl(var(--input));
+  --color-border: hsl(var(--border));
+  --color-destructive: hsl(var(--destructive));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: hsl(var(--card));
   --radius-sm: calc(var(--radius) - 2px);
-  /* Changed from 4px to 2px for consistency with Tailwind config */
   --radius-md: var(--radius);
-  /* Now default radius */
   --radius-lg: calc(var(--radius) + 4px);
-  /* Changed from var(--radius) to +4px */
   --radius-xl: calc(var(--radius) + 8px);
-  /* Added for consistency */
 }
 
-:root {
-  --radius: 0.25rem;
-  /* DEFAULT in tailwind.config.ts */
+@layer base {
+  :root {
+    --background: 210 40% 96.1%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --sidebar-background: 0 0% 100%;
+    /* Stitch Project Primary Color: #137fec */
+    --primary: 210 85% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
+    --ring: 210 85% 50%;
+    --radius: 0.5rem;
+  }
 
-  @layer base {
-    * {
-      @apply border-border outline-ring/50;
-    }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --sidebar-background: 222.2 84% 4.9%;
+    --primary: 210 85% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 210 85% 50%;
+  }
 
-    body {
-      @apply bg-background text-foreground;
-    }
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }
