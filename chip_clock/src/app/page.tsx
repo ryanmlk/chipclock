@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { WeeklyHoursCard } from "@/components/weeklyHoursCard";
-import { SignedIn, SignedOut, UserButton, UserProfile } from "@clerk/nextjs";
 import type { Shift } from "@/generated/prisma/client";
 
 export default function SchedulePage() {

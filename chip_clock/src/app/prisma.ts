@@ -2,10 +2,10 @@ import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}/${process.env.PGDATABASE}`;
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL is not set');
+  throw new Error('Environment Vars for database url is not set');
 }
 
 const pool = new Pool({

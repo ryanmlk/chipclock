@@ -1,4 +1,5 @@
 import { createEvents, EventAttributes } from 'ics'
+import type { Shift } from "@/generated/prisma/client";
 
 export async function generateICS(name: string, shifts: Shift[]): Promise<string> {
   const events = shifts.map((shift) => {
@@ -21,7 +22,7 @@ export async function generateICS(name: string, shifts: Shift[]): Promise<string
       start: startObj,
       end: endObj,
       startInputType: 'local', // This prevents UTC conversion
-      title: `Chipotle ${shift.shift_type} Shift`,
+      title: `Chipotle ${shift.position} Shift`,
       description: 'Scheduled work shift',
       location: 'Chipotle',
       status: 'CONFIRMED',

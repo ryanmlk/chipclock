@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +11,8 @@ import {
     CardContent,
     CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Settings, TrendingUp, TrendingDown, Target, Calculator } from "lucide-react";
-import { format, isSameDay } from "date-fns";
+import { isSameDay } from "date-fns";
 
 import { useLabourStore } from "@/store/useLabourStore";
 import { useScheduleStore } from "@/store/useScheduleStore";

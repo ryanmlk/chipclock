@@ -13,7 +13,7 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Save } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 
 interface MatrixItem {
     id: string;

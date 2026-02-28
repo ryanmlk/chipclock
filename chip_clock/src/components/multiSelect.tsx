@@ -110,10 +110,10 @@ interface MultiSelectGroup {
  */
 interface MultiSelectProps
 	extends Omit<
-			React.ButtonHTMLAttributes<HTMLButtonElement>,
-			"animationConfig"
-		>,
-		VariantProps<typeof multiSelectVariants> {
+		React.ButtonHTMLAttributes<HTMLButtonElement>,
+		"animationConfig"
+	>,
+	VariantProps<typeof multiSelectVariants> {
 	/**
 	 * An array of option objects or groups to be displayed in the multi-select component.
 	 */
@@ -221,27 +221,27 @@ interface MultiSelectProps
 	 * Can be boolean true for default responsive behavior or an object for custom configuration.
 	 */
 	responsive?:
-		| boolean
-		| {
-				/** Configuration for mobile devices (< 640px) */
-				mobile?: {
-					maxCount?: number;
-					hideIcons?: boolean;
-					compactMode?: boolean;
-				};
-				/** Configuration for tablet devices (640px - 1024px) */
-				tablet?: {
-					maxCount?: number;
-					hideIcons?: boolean;
-					compactMode?: boolean;
-				};
-				/** Configuration for desktop devices (> 1024px) */
-				desktop?: {
-					maxCount?: number;
-					hideIcons?: boolean;
-					compactMode?: boolean;
-				};
-		  };
+	| boolean
+	| {
+		/** Configuration for mobile devices (< 640px) */
+		mobile?: {
+			maxCount?: number;
+			hideIcons?: boolean;
+			compactMode?: boolean;
+		};
+		/** Configuration for tablet devices (640px - 1024px) */
+		tablet?: {
+			maxCount?: number;
+			hideIcons?: boolean;
+			compactMode?: boolean;
+		};
+		/** Configuration for desktop devices (> 1024px) */
+		desktop?: {
+			maxCount?: number;
+			hideIcons?: boolean;
+			compactMode?: boolean;
+		};
+	};
 
 	/**
 	 * Minimum width for the component.
@@ -316,7 +316,6 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			animationConfig,
 			maxCount = 3,
 			modalPopover = false,
-			asChild = false,
 			className,
 			hideSelectAll = false,
 			searchable = true,
@@ -557,11 +556,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					`MultiSelect: Duplicate option values ${action}: ${duplicates.join(
 						", "
 					)}. ` +
-						`${
-							deduplicateOptions
-								? "Duplicates have been removed automatically."
-								: "This may cause unexpected behavior. Consider setting 'deduplicateOptions={true}' or ensure all option values are unique."
-						}`
+					`${deduplicateOptions
+						? "Duplicates have been removed automatically."
+						: "This may cause unexpected behavior. Consider setting 'deduplicateOptions={true}' or ensure all option values are unique."
+					}`
 				);
 			}
 			return deduplicateOptions ? uniqueOptions : allOptions;
@@ -752,8 +750,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					).length;
 
 					announce(
-						`${filteredCount} option${
-							filteredCount === 1 ? "" : "s"
+						`${filteredCount} option${filteredCount === 1 ? "" : "s"
 						} found for "${searchValue}"`
 					);
 				}
@@ -783,12 +780,11 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					<div id={selectedCountId} className="sr-only" aria-live="polite">
 						{selectedValues.length === 0
 							? "No options selected"
-							: `${selectedValues.length} option${
-									selectedValues.length === 1 ? "" : "s"
-							  } selected: ${selectedValues
-									.map((value) => getOptionByValue(value)?.label)
-									.filter(Boolean)
-									.join(", ")}`}
+							: `${selectedValues.length} option${selectedValues.length === 1 ? "" : "s"
+							} selected: ${selectedValues
+								.map((value) => getOptionByValue(value)?.label)
+								.filter(Boolean)
+								.join(", ")}`}
 					</div>
 
 					<PopoverTrigger asChild>
@@ -802,9 +798,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 							aria-haspopup="listbox"
 							aria-controls={isPopoverOpen ? listboxId : undefined}
 							aria-describedby={`${triggerDescriptionId} ${selectedCountId}`}
-							aria-label={`Multi-select: ${selectedValues.length} of ${
-								getAllOptions().length
-							} options selected. ${placeholder}`}
+							aria-label={`Multi-select: ${selectedValues.length} of ${getAllOptions().length
+								} options selected. ${placeholder}`}
 							className={cn(
 								"flex p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
 								autoSize ? "w-auto" : "w-full",
@@ -830,8 +825,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 										style={
 											singleLine
 												? {
-														paddingBottom: "4px",
-												  }
+													paddingBottom: "4px",
+												}
 												: {}
 										}>
 										{selectedValues
@@ -860,19 +855,18 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 															getBadgeAnimationClass(),
 															multiSelectVariants({ variant }),
 															customStyle?.gradient &&
-																"text-white border-transparent",
+															"text-white border-transparent",
 															responsiveSettings.compactMode &&
-																"text-xs px-1.5 py-0.5",
+															"text-xs px-1.5 py-0.5",
 															screenSize === "mobile" &&
-																"max-w-[120px] truncate",
+															"max-w-[120px] truncate",
 															singleLine && "flex-shrink-0 whitespace-nowrap",
 															"[&>svg]:pointer-events-auto"
 														)}
 														style={{
 															...badgeStyle,
-															animationDuration: `${
-																animationConfig?.duration || animation
-															}s`,
+															animationDuration: `${animationConfig?.duration || animation
+																}s`,
 															animationDelay: `${animationConfig?.delay || 0}s`,
 														}}>
 														{IconComponent && !responsiveSettings.hideIcons && (
@@ -880,7 +874,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 																className={cn(
 																	"h-4 w-4 mr-2",
 																	responsiveSettings.compactMode &&
-																		"h-3 w-3 mr-1",
+																	"h-3 w-3 mr-1",
 																	customStyle?.iconColor && "text-current"
 																)}
 																{...(customStyle?.iconColor && {
@@ -917,7 +911,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 																className={cn(
 																	"h-3 w-3",
 																	responsiveSettings.compactMode &&
-																		"h-2.5 w-2.5"
+																	"h-2.5 w-2.5"
 																)}
 															/>
 														</div>
@@ -932,19 +926,17 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 													getBadgeAnimationClass(),
 													multiSelectVariants({ variant }),
 													responsiveSettings.compactMode &&
-														"text-xs px-1.5 py-0.5",
+													"text-xs px-1.5 py-0.5",
 													singleLine && "flex-shrink-0 whitespace-nowrap",
 													"[&>svg]:pointer-events-auto"
 												)}
 												style={{
-													animationDuration: `${
-														animationConfig?.duration || animation
-													}s`,
+													animationDuration: `${animationConfig?.duration || animation
+														}s`,
 													animationDelay: `${animationConfig?.delay || 0}s`,
 												}}>
-												{`+ ${
-													selectedValues.length - responsiveSettings.maxCount
-												} more`}
+												{`+ ${selectedValues.length - responsiveSettings.maxCount
+													} more`}
 												<XCircle
 													className={cn(
 														"ml-2 h-4 w-4 cursor-pointer",
@@ -1054,9 +1046,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 												selectedValues.length ===
 												getAllOptions().filter((opt) => !opt.disabled).length
 											}
-											aria-label={`Select all ${
-												getAllOptions().length
-											} options`}
+											aria-label={`Select all ${getAllOptions().length
+												} options`}
 											className="cursor-pointer">
 											<div
 												className={cn(
@@ -1094,9 +1085,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 														role="option"
 														aria-selected={isSelected}
 														aria-disabled={option.disabled}
-														aria-label={`${option.label}${
-															isSelected ? ", selected" : ", not selected"
-														}${option.disabled ? ", disabled" : ""}`}
+														aria-label={`${option.label}${isSelected ? ", selected" : ", not selected"
+															}${option.disabled ? ", disabled" : ""}`}
 														className={cn(
 															"cursor-pointer",
 															option.disabled && "opacity-50 cursor-not-allowed"
@@ -1135,9 +1125,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 													role="option"
 													aria-selected={isSelected}
 													aria-disabled={option.disabled}
-													aria-label={`${option.label}${
-														isSelected ? ", selected" : ", not selected"
-													}${option.disabled ? ", disabled" : ""}`}
+													aria-label={`${option.label}${isSelected ? ", selected" : ", not selected"
+														}${option.disabled ? ", disabled" : ""}`}
 													className={cn(
 														"cursor-pointer",
 														option.disabled && "opacity-50 cursor-not-allowed"
