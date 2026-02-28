@@ -15,7 +15,7 @@
     - [ ] Remove `url = ...` from `datasource db` while preserving `provider` and other properties.
 - [x] Task: Generate Prisma Client
     - [ ] Run `npx prisma generate`.
-- [~] Task: Conductor - User Manual Verification 'Core Prisma Upgrade and Setup' (Deferred until all code changes across all phases are complete)
+- [x] Task: Conductor - User Manual Verification 'Core Prisma Upgrade and Setup' (Deferred until all code changes across all phases are complete)
 
 ## Phase 2: Client Refactoring and ESM/TS Compatibility
 
@@ -29,7 +29,7 @@
 - [x] Task: Ensure ESM & TypeScript Baseline
     - [ ] Verify `package.json` has `"type": "module"`. Add if missing.
     - [ ] Update `tsconfig.json` to include `"module": "ESNext"` and `"moduleResolution": "bundler"`.
-- [~] Task: Conductor - User Manual Verification 'Client Refactoring and ESM/TS Compatibility' (Deferred until all code changes across all phases are complete)
+- [x] Task: Conductor - User Manual Verification 'Client Refactoring and ESM/TS Compatibility' (Deferred until all code changes across all phases are complete)
 
 <h2>Phase 3: Seeding Script and Mapped Enum Handling</h2>
 
@@ -40,7 +40,7 @@
     - [ ] Scan `schema.prisma` for enums using `@map`.
     - [ ] If found, identify code locations where these enums are used.
     - [ ] Implement temporary workarounds (e.g., using schema names as string literals with `as any` or temporarily removing `@map` directives) and add comments explaining the bug and workaround.
-- [~] Task: Conductor - User Manual Verification 'Seeding Script and Mapped Enum Handling' (Deferred until all code changes across all phases are complete)
+- [x] Task: Conductor - User Manual Verification 'Seeding Script and Mapped Enum Handling' (Deferred until all code changes across all phases are complete)
 
 ## Phase 4: Final Verification and Cleanup
 
@@ -52,4 +52,4 @@
     - [ ] Run the full test suite to ensure no regressions.
 - [x] Task: Remove temporary workarounds for mapped enums
     - [ ] If Prisma releases a fix for the mapped enum bug, remove the temporary workarounds.
-- [~] Task: Conductor - User Manual Verification 'Final Verification and Cleanup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Final Verification and Cleanup' (Protocol in workflow.md)

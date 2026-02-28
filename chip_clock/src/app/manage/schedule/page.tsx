@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Position } from "@/types/enums";
-import { Shift, Employee } from "@/generated/prisma";
+import type { Shift, Employee } from "@/generated/prisma/client";
 import { ShiftDialog } from "@/components/shiftDialog";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { formatTimeLocal } from "@/lib/dateUtils";

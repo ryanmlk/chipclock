@@ -10,7 +10,7 @@ import {
   TableCell,
   TableBody,
 } from "@/components/ui/table";
-import { Employee } from "@/generated/prisma";
+import type { Employee } from "@/generated/prisma/client";
 import { useEffect, useState } from "react";
 import { EmployeeDialog } from "@/components/employeeDialog";
 import { Trash2, Edit, Plus } from "lucide-react";

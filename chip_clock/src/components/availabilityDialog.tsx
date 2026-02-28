@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { EmployeeSelect } from "@/components/employeeSelect";
-import { AvailabilitySlot, Employee } from "@/generated/prisma";
+import type { AvailabilitySlot, Employee } from "@/generated/prisma/client";
 import { Position } from "@/types/enums";
 import { createAvailabilityAPI } from "@/lib/api/availability";
 

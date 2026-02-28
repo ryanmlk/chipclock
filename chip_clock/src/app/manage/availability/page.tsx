@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, Download, Printer } from "lucide-react";
 import { Position } from "@/types/enums";
-import { AvailabilitySlot, Employee } from "@/generated/prisma";
+import type { AvailabilitySlot, Employee } from "@/generated/prisma/client";
 import AvailabilityDialog from "@/components/availabilityDialog";
 import { fetchAvailabilitiesAPI } from "@/lib/api/availability";
 

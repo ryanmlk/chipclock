@@ -7,7 +7,7 @@ import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { WeeklyHoursCard } from "@/components/weeklyHoursCard";
 import { SignedIn, SignedOut, UserButton, UserProfile } from "@clerk/nextjs";
-import { Shift } from "@/generated/prisma";
+import type { Shift } from "@/generated/prisma/client";
 
 export default function SchedulePage() {
   const router = useRouter();
