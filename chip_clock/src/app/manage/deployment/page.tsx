@@ -37,6 +37,18 @@ const getJobTypeColors = (jobType: string): string => {
     }
 };
 
+const getDefaultTimeFilter = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const timeInMinutes = hours * 60 + minutes;
+
+    if (timeInMinutes < 11 * 60 + 30) return "Opening";
+    if (timeInMinutes < 15 * 60) return "AM Peak";
+    if (timeInMinutes < 19 * 60) return "PM Peak";
+    return "Closing";
+};
+
 const DeploymentPage = () => {
     const {
         shifts,
@@ -51,7 +63,7 @@ const DeploymentPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftWithEmployee | null>(null);
 
-    const [timeFilter, setTimeFilter] = useState<string>("All");
+    const [timeFilter, setTimeFilter] = useState<string>(getDefaultTimeFilter);
 
     useEffect(() => {
         fetchShifts();
