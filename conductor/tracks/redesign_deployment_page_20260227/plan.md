@@ -24,12 +24,12 @@
     - [x] Change the display name from "Schedule" to "Deployment" in the UI menus.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Route Renaming & Navigation Update' (Protocol in workflow.md)
 
-## Phase 3: Deployment Page - Section 1 Implementation
+## Phase 3: Deployment Page - Section 1 Implementation [checkpoint: b54157c]
 
-- [~] Task: Layout scaffolding for Section 1
-    - [ ] Restructure `src/app/manage/deployment/page.tsx` to accommodate the new layout for Section 1.
-    - [ ] Integrate the newly created reusable components (Cards, Headers) into this view.
-- [ ] Task: Integrate Data Fetching
-    - [ ] Ensure `useScheduleStore` and existing API calls are correctly wired up to the new UI components in Section 1.
-    - [ ] Adapt the UI to correctly map and display the data (e.g., employee names, shift times, positions).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Deployment Page - Section 1 Implementation' (Protocol in workflow.md)
+- [x] Task: Layout scaffolding for Section 1 [2233fba]
+    - [x] Restructure `src/app/manage/deployment/page.tsx` to accommodate the new layout for Section 1.
+    - [x] Integrate the newly created reusable components (Cards, Headers) into this view.
+- [x] Task: Integrate Data Fetching [2233fba]
+    - [x] Ensure `useScheduleStore` and existing API calls are correctly wired up to the new UI components in Section 1.
+    - [x] Adapt the UI to correctly map and display the data (e.g., employee names, shift times, positions).
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Deployment Page - Section 1 Implementation' (Protocol in workflow.md)
