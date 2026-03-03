@@ -7,7 +7,7 @@ import { Card, CardAction, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { Shift } from "@/generated/prisma/client";
 
-export default function SchedulePage() {
+export default function DeploymentPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [schedule, setSchedule] = useState<Shift[]>([]);
@@ -18,7 +18,7 @@ export default function SchedulePage() {
       const nameToUse = nameParam || name;
       if (!nameToUse) {
         toast("Please enter your name", {
-          description: "Name is required to fetch your schedule.",
+          description: "Name is required to fetch your deployment.",
         });
         return;
       }
@@ -28,10 +28,10 @@ export default function SchedulePage() {
       );
       const data = await res.json();
       if (!Array.isArray(data) || data.length < 1) {
-        console.error("Failed to fetch schedule:", data);
-        toast("Failed to fetch schedule", {
+        console.error("Failed to fetch deployment:", data);
+        toast("Failed to fetch deployment", {
           description:
-            "Check that name matches name in Schedule and try again.",
+            "Check that name matches name in Deployment and try again.",
         });
         return;
       }
@@ -90,7 +90,7 @@ export default function SchedulePage() {
               onClick={() => fetchSchedule()}
               className="bg-blue-500 text-white px-3 py-1 rounded mt-2 mb-5 w-full"
             >
-              View Schedule
+              View Deployment
             </button>
           </CardAction>
           {schedule.length > 0 && <ScheduleTable shifts={schedule} />}

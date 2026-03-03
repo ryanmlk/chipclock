@@ -25,8 +25,8 @@ const items = [
     icon: AlarmClock,
   },
   {
-    title: "Schedule",
-    url: "/manage/schedule",
+    title: "Deployment",
+    url: "/manage/deployment",
     icon: Calendar,
   },
   {

@@ -23,7 +23,7 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 type ShiftWithEmployee = Shift & { employee: Employee };
 
-const SchedulePage = () => {
+const DeploymentPage = () => {
     const {
         shifts,
         loading,
@@ -180,4 +180,4 @@ const SchedulePage = () => {
     );
 };
 
-export default SchedulePage;
+export default DeploymentPage;

@@ -22,7 +22,7 @@ export default function ManagePage() {
                     
                     <div className="mt-4">
                         <p className="text-gray-600">
-                            Use this dashboard to manage your schedule settings and configurations.
+                            Use this dashboard to manage your deployment settings and configurations.
                         </p>
                     </div>
                 </div>
