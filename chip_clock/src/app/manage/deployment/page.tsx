@@ -51,6 +51,8 @@ const DeploymentPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftWithEmployee | null>(null);
 
+    const [timeFilter, setTimeFilter] = useState<string>("All");
+
     useEffect(() => {
         fetchShifts();
     }, [selectedDate, fetchShifts]);
@@ -65,7 +67,44 @@ const DeploymentPage = () => {
         }
     };
 
-    const dayShifts = shifts.filter(s => isSameDay(new Date(s.shift_start), selectedDate));
+    let dayShifts = shifts.filter(s => isSameDay(new Date(s.shift_start), selectedDate));
+
+    if (timeFilter !== "All") {
+        const getBlockDate = (hours: number, minutes: number = 0) => {
+            const d = new Date(selectedDate);
+            d.setHours(hours, minutes, 0, 0);
+            return d.getTime();
+        };
+
+        let blockStart = 0;
+        let blockEnd = 0;
+
+        switch (timeFilter) {
+            case "Opening":
+                blockStart = getBlockDate(0, 0);
+                blockEnd = getBlockDate(11, 30);
+                break;
+            case "AM Peak":
+                blockStart = getBlockDate(11, 30);
+                blockEnd = getBlockDate(15, 0);
+                break;
+            case "PM Peak":
+                blockStart = getBlockDate(15, 0);
+                blockEnd = getBlockDate(19, 0);
+                break;
+            case "Closing":
+                blockStart = getBlockDate(19, 0);
+                blockEnd = getBlockDate(23, 59);
+                break;
+        }
+
+        dayShifts = dayShifts.filter(shift => {
+            const sStart = new Date(shift.shift_start).getTime();
+            const sEnd = new Date(shift.shift_end).getTime();
+            // A shift is in the block if it overlaps with the block's time window.
+            return sStart < blockEnd && blockStart < sEnd;
+        });
+    }
 
     return (
         <div className="space-y-6 relative min-h-[400px]">
@@ -77,7 +116,12 @@ const DeploymentPage = () => {
                         <Input
                             type="date"
                             value={format(selectedDate, "yyyy-MM-dd")}
-                            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                            onChange={(e) => {
+                                const [year, month, day] = e.target.value.split('-').map(Number);
+                                if (year && month && day) {
+                                    setSelectedDate(new Date(year, month - 1, day));
+                                }
+                            }}
                             className="w-48 bg-card"
                         />
                     </div>
@@ -109,11 +153,20 @@ const DeploymentPage = () => {
                         </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit">
-                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">Opening</button>
-                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">AM Peak</button>
-                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all bg-card text-primary shadow-sm">PM Peak</button>
-                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">Closing</button>
+                        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit flex-wrap">
+                            {["All", "Opening", "AM Peak", "PM Peak", "Closing"].map((filter) => (
+                                <button
+                                    key={filter}
+                                    onClick={() => setTimeFilter(filter)}
+                                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                        timeFilter === filter
+                                            ? "bg-card text-primary shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                >
+                                    {filter}
+                                </button>
+                            ))}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
