@@ -23,6 +23,20 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 type ShiftWithEmployee = Shift & { employee: Employee };
 
+const getJobTypeColors = (jobType: string): string => {
+    switch (jobType) {
+        case Position.Grill: return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+        case Position.Prep: return "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400";
+        case Position.Cash: return "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+        case Position.Dml: return "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400";
+        case Position.Expo: return "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400";
+        case Position.Line: return "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400";
+        case Position.Tortilla: return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+        case Position.Wash: return "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400";
+        default: return "bg-primary/10 text-primary";
+    }
+};
+
 const DeploymentPage = () => {
     const {
         shifts,
@@ -45,23 +59,13 @@ const DeploymentPage = () => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
         try {
             await api.labour.deleteShift(id);
-            fetchShifts({ force: true }); // force refetch
+            fetchShifts({ force: true });
         } catch (error) {
             console.error("Error deleting shift:", error);
         }
     };
 
     const dayShifts = shifts.filter(s => isSameDay(new Date(s.shift_start), selectedDate));
-
-    // Group shifts by position for deployment view
-    const groupedShifts = dayShifts.reduce((acc, shift) => {
-        const pos = shift.position || "Other";
-        if (!acc[pos]) acc[pos] = [];
-        acc[pos].push(shift);
-        return acc;
-    }, {} as Record<string, ShiftWithEmployee[]>);
-
-    const positions = Object.values(Position).filter(p => p !== Position.All);
 
     return (
         <div className="space-y-6 relative min-h-[400px]">
@@ -74,22 +78,8 @@ const DeploymentPage = () => {
                             type="date"
                             value={format(selectedDate, "yyyy-MM-dd")}
                             onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                            className="w-48"
+                            className="w-48 bg-card"
                         />
-                    </div>
-                    <div className="space-x-2 pb-1">
-                        <Button
-                            variant={view === "daily" ? "default" : "outline"}
-                            onClick={() => setView("daily")}
-                        >
-                            Daily Deployment
-                        </Button>
-                        <Button
-                            variant={view === "weekly" ? "default" : "outline"}
-                            onClick={() => setView("weekly")}
-                        >
-                            Weekly Overview
-                        </Button>
                     </div>
                 </div>
 
@@ -108,58 +98,79 @@ const DeploymentPage = () => {
             </div>
 
             {view === "daily" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {positions.map((pos) => (
-                        <Card key={pos} className="bg-sidebar border-sidebar-border shadow-sm">
-                            <CardHeader className="py-3">
-                                <CardTitle className="text-sm font-semibold uppercase tracking-wider">
-                                    {pos}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {(groupedShifts[pos] || []).length > 0 ? (
-                                    groupedShifts[pos].map((shift) => (
-                                        <div
-                                            key={shift.id}
-                                            className="flex items-center justify-between p-2 rounded bg-background/50 border border-border/50 group"
-                                        >
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {shift.employee.first_name} {shift.employee.last_name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {formatTimeLocal(shift.shift_start)} - {formatTimeLocal(shift.shift_end)}
-                                                </p>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-7 w-7"
-                                                    onClick={() => { setEditingShift(shift); setIsModalOpen(true); }}
-                                                >
-                                                    <Edit className="h-3.5 w-3.5" />
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-7 w-7 text-destructive"
-                                                    onClick={() => handleDeleteShift(shift.id)}
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </Button>
-                                            </div>
+                <Card className="bg-card border-border shadow-sm rounded-2xl h-full">
+                    <CardHeader className="flex flex-row items-center justify-between pb-4">
+                        <div>
+                            <CardTitle className="text-2xl font-bold">Current Deployment</CardTitle>
+                            <p className="text-slate-500 mt-1">{dayShifts.length} Staff On-Station</p>
+                        </div>
+                        <Button variant="outline">
+                            Edit Layout
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit">
+                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">Opening</button>
+                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">AM Peak</button>
+                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all bg-card text-primary shadow-sm">PM Peak</button>
+                            <button className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-muted-foreground hover:text-foreground">Closing</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {dayShifts.map((shift) => {
+                                const durationHours = (new Date(shift.shift_end).getTime() - new Date(shift.shift_start).getTime()) / (1000 * 60 * 60);
+                                return (
+                                    <div
+                                        key={shift.id}
+                                        className="group relative p-6 border border-border bg-surface/30 dark:bg-slate-900/30 rounded-2xl cursor-pointer hover:border-primary/50 transition-all"
+                                    >
+                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1">
+                                            <button
+                                                className="p-1.5 bg-card border border-border rounded-md text-slate-500 hover:text-primary transition-colors shadow-sm"
+                                                title="Edit Shift"
+                                                onClick={(e) => { e.stopPropagation(); setEditingShift(shift); setIsModalOpen(true); }}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                className="p-1.5 bg-card border border-border rounded-md text-slate-500 hover:text-destructive transition-colors shadow-sm"
+                                                title="Delete Shift"
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteShift(shift.id); }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="text-xs text-muted-foreground italic">No one scheduled</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${getJobTypeColors(shift.position || '')}`}>
+                                                {shift.position || 'Other'}
+                                            </span>
+                                            <span className="text-xs font-mono text-slate-400">
+                                                {formatTimeLocal(shift.shift_start)} - {formatTimeLocal(shift.shift_end)} ({durationHours.toFixed(1)}h)
+                                            </span>
+                                        </div>
+                                        <h4 className="font-bold text-lg mb-1">
+                                            {shift.employee?.first_name} {shift.employee?.last_name}
+                                        </h4>
+                                        <p className="text-sm text-slate-500">Scheduled</p>
+                                        <div className="mt-4 flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">Station Active</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            <div
+                                onClick={() => { setEditingShift(null); setIsModalOpen(true); }}
+                                className="p-6 border border-dashed border-border flex flex-col items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all cursor-pointer rounded-2xl bg-surface/10 min-h-[160px]"
+                            >
+                                <Plus className="w-8 h-8 mb-2" />
+                                <span className="text-sm font-bold uppercase tracking-wider">Add Shift</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             ) : (
-                <Card>
+                <Card className="rounded-2xl">
                     <CardHeader>
                         <CardTitle>Weekly Summary ({format(startOfWeek(selectedDate, { weekStartsOn: 1 }), "MMM d")} - {format(addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), 6), "MMM d")})</CardTitle>
                     </CardHeader>
