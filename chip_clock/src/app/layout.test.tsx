@@ -38,9 +38,8 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    // Use flexible matchers for split text
-    expect(screen.getByText(/CHIP/i)).toBeInTheDocument();
-    expect(screen.getByText(/CLOCK/i)).toBeInTheDocument();
+    // Verify the mocked AppSidebar is rendered
+    expect(screen.getByText('AppSidebar')).toBeInTheDocument();
     
     // Check for other elements
     expect(screen.getByPlaceholderText(/Search shifts/i)).toBeInTheDocument();
