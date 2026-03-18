@@ -100,7 +100,14 @@ const LabourManagementPage = () => {
 
         const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
         // Sales Target should be sales needed for predicted closing hours
-        const target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+        let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+        
+        // If no match found and we have matrix data, it means hours exceed matrix
+        if (!target && sorted.length > 0) {
+            // Use the highest sales level available
+            target = sorted[sorted.length - 1];
+        }
+        
         const sTarget = target ? target.sales_level : "N/A";
 
         setCalculatedMetrics({

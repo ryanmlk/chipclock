@@ -15,24 +15,21 @@ export async function GET(req: NextRequest) {
     const end = endOfDay(date);
 
     try {
-        const kpi = await prisma.dailyKPI.findFirst({
+        const kpis = await prisma.dailyKPI.findMany({
             where: {
                 date: {
                     gte: start,
                     lte: end,
                 },
-                kpi_name: "sales_projection",
             },
         });
 
-        if (!kpi) {
-            return NextResponse.json({ sales_projection: 0 });
-        }
-
-        return NextResponse.json({
-            sales_projection: kpi.kpi_value,
-            date: kpi.date,
+        const result: Record<string, any> = {};
+        kpis.forEach(kpi => {
+            result[kpi.kpi_name] = kpi.kpi_value;
         });
+
+        return NextResponse.json(result);
     } catch (error) {
         console.error("Error fetching sales projection:", error);
         return NextResponse.json({ error: "Failed to fetch sales projection" }, { status: 500 });

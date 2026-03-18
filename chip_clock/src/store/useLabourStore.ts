@@ -37,13 +37,14 @@ export const useLabourStore = create<LabourState>((set, get) => ({
         set({ loading: true });
         try {
             const matrixData = await api.labour.getMatrix();
-            const projectionData = await api.labour.getSalesProjection(todayStr);
+            const kpiData = await api.labour.getSalesProjection(todayStr);
 
             set({
                 matrix: Array.isArray(matrixData) ? matrixData : [],
                 sales: {
-                    ...sales,
-                    projection: projectionData?.sales_projection?.toString() || sales.projection
+                    current: kpiData?.actual_sales?.toString() || sales.current,
+                    projection: kpiData?.sales_projection?.toString() || sales.projection,
+                    actualHours: kpiData?.actual_hours?.toString() || sales.actualHours
                 },
                 lastFetched: todayStr
             });
