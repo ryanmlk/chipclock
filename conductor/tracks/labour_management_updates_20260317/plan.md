@@ -2,12 +2,12 @@
 
 ## Phase 1: Sales Projection Extraction
 
-- [ ] Task: Implement sales projection extraction logic from "Chipotle Weekly Schedule.pdf".
-    - [ ] Write failing tests for PDF parsing and sales data extraction.
-    - [ ] Implement PDF parsing to extract sales projection data.
-    - [ ] Ensure extracted data is standardized.
-    - [ ] Commit changes for sales projection extraction.
-- [ ] Task: Conductor - User Manual Verification 'Sales Projection Extraction' (Protocol in workflow.md)
+- [x] Task: Implement sales projection extraction logic from "Chipotle Weekly Schedule.pdf". 58dc5e9
+    - [x] Write failing tests for PDF parsing and sales data extraction.
+    - [x] Implement PDF parsing to extract sales projection data.
+    - [x] Ensure extracted data is standardized.
+    - [x] Commit changes for sales projection extraction.
+- [x] Task: Conductor - User Manual Verification 'Sales Projection Extraction' (Protocol in workflow.md)
 
 ## Phase 2: EOD Projection Integration
 
