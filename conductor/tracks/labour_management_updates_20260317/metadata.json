@@ -1,0 +1,8 @@
+{
+  "track_id": "labour_management_updates_20260317",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-17T10:00:00Z",
+  "updated_at": "2026-03-17T10:00:00Z",
+  "description": "I want to fix up the labour management page. For this I first need to extract the sales projection from the schedule and save it in the database. I will then use this as the initial value on loading the page for the EOD Projection which can be edit. The user can also enter the current sales and the current hours which will be defaulted based on the scheduled hours upto the current time, Once a calculate button is clicked the metrics need to be updated. Change the current metrics to the following 1. Matrix Hours (The hours allowed based on the matrix for the EOD Projection) 2. Predicted Closing Hours (Current Hours + Hours left based on schedule and current time) 3. Sales Target (Target to reach so that we don't lose hours essentailly the sales value for the predicted closing hours). The schedule pdf can be found @Chipotle\ Weekly\ Schedule.pdf for your reference"
+}
