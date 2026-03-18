@@ -143,6 +143,8 @@ model DailyKPI {
   kpi_value          Float
   kpi_name           String
   created_at         DateTime @default(now())
+
+  @@unique([date, kpi_name])
 }
 
 

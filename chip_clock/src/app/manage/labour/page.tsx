@@ -17,6 +17,9 @@ import { isSameDay } from "date-fns";
 import { useLabourStore } from "@/store/useLabourStore";
 import { useScheduleStore } from "@/store/useScheduleStore";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { formatDateLocal } from "@/lib/dateUtils";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const LabourManagementPage = () => {
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
@@ -34,6 +37,23 @@ const LabourManagementPage = () => {
     const now = new Date();
     // Filter the global shifts list to only show today's shifts for these calculations
     const shifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), now));
+
+    // Calculate scheduled hours up to now
+    const scheduledHoursUpToNow = shifts.reduce((acc, shift) => {
+        const start = new Date(shift.shift_start);
+        const end = new Date(shift.shift_end);
+        if (start >= now) return acc;
+        const effectiveEnd = end < now ? end : now;
+        const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+        return acc + hours;
+    }, 0);
+
+    // Default current hours in store if empty
+    useEffect(() => {
+        if (!loading && shifts.length > 0 && sales.actualHours === "" && scheduledHoursUpToNow > 0) {
+            setSales({ ...sales, actualHours: scheduledHoursUpToNow.toFixed(2) });
+        }
+    }, [loading, shifts.length, sales.actualHours, scheduledHoursUpToNow, setSales, sales]);
 
     const totalScheduledHours = shifts.reduce((acc, shift) => {
         const h = shift.hours ? parseFloat(shift.hours) : 0;
@@ -61,17 +81,50 @@ const LabourManagementPage = () => {
         ? (parseFloat(sales.actualHours) || 0) + remainingScheduledHours
         : totalScheduledHours;
 
-    const currentAllowed = getAllowedHours(parseFloat(sales.current) || 0);
-    const projectedAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
+    const [calculatedMetrics, setCalculatedMetrics] = React.useState({
+        currentAllowed: 0,
+        projectedAllowed: 0,
+        projectedGainLoss: 0,
+        currentGainLoss: 0,
+        salesTarget: "N/A" as string | number,
+        remainingHours: 0
+    });
 
-    const projectedGainLoss = projectedAllowed - totalScheduledHours;
-    const currentGainLoss = currentAllowed - effectiveCurrentHours;
+    const handleCalculate = async () => {
+        const cAllowed = getAllowedHours(parseFloat(sales.current) || 0);
+        const pAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
+        
+        const predictedClosingHours = (parseFloat(sales.actualHours) || 0) + remainingScheduledHours;
+        const pGainLoss = pAllowed - totalScheduledHours;
+        const cGainLoss = cAllowed - effectiveCurrentHours;
 
-    // Find sales target to match totalScheduledHours
-    const findSalesTarget = () => {
         const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
-        const target = sorted.find(m => m.hours_allowed >= totalScheduledHours);
-        return target ? target.sales_level : "N/A";
+        // Sales Target should be sales needed for predicted closing hours
+        const target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+        const sTarget = target ? target.sales_level : "N/A";
+
+        setCalculatedMetrics({
+            currentAllowed: cAllowed,
+            projectedAllowed: pAllowed,
+            projectedGainLoss: pGainLoss,
+            currentGainLoss: cGainLoss,
+            salesTarget: sTarget,
+            remainingHours: remainingScheduledHours
+        });
+
+        // Save to DB
+        try {
+            await api.labour.saveKPI({
+                date: formatDateLocal(now),
+                sales_projection: sales.projection,
+                actual_sales: sales.current,
+                actual_hours: sales.actualHours
+            });
+            toast.success("Metrics saved successfully");
+        } catch (error) {
+            console.error("Error saving KPIs:", error);
+            toast.error("Failed to save metrics to database");
+        }
     };
 
     return (
@@ -127,18 +180,21 @@ const LabourManagementPage = () => {
                                 onChange={(e) => setSales({ ...sales, projection: e.target.value })}
                             />
                         </div>
+                        <Button className="w-full mt-4" onClick={handleCalculate}>
+                            Calculate
+                        </Button>
                     </CardContent>
                 </Card>
 
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card className={currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
+                    <Card className={calculatedMetrics.currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">Current Performance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className={`text-2xl font-bold flex items-center gap-2 ${currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                                {currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                                {currentGainLoss.toFixed(2)} hrs
+                            <div className={`text-2xl font-bold flex items-center gap-2 ${calculatedMetrics.currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {calculatedMetrics.currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                                {calculatedMetrics.currentGainLoss.toFixed(2)} hrs
                             </div>
                             <p className="text-xs text-muted-foreground">Status at ${sales.current || "0"} sales</p>
                         </CardContent>
@@ -151,22 +207,22 @@ const LabourManagementPage = () => {
                         <CardContent>
                             <div className="text-2xl font-bold flex items-center gap-2">
                                 <Target className="w-5 h-5 text-blue-500" />
-                                ${findSalesTarget()}
+                                ${calculatedMetrics.salesTarget}
                             </div>
-                            <p className="text-xs text-muted-foreground">To break even with scheduled hours</p>
+                            <p className="text-xs text-muted-foreground">To break even with predicted closing hours</p>
                         </CardContent>
                     </Card>
 
-                    <Card className={projectedGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
+                    <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Projected Status</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Remaining Hours</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className={`text-2xl font-bold flex items-center gap-2 ${projectedGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                                {projectedGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                                {projectedGainLoss >= 0 ? "+" : ""}{projectedGainLoss.toFixed(2)} hrs
+                            <div className="text-2xl font-bold flex items-center gap-2 text-blue-600">
+                                <TrendingUp className="w-5 h-5" />
+                                {calculatedMetrics.remainingHours.toFixed(2)} hrs
                             </div>
-                            <p className="text-xs text-muted-foreground">Gain/Loss based on projection</p>
+                            <p className="text-xs text-muted-foreground">From now until end of shifts</p>
                         </CardContent>
                     </Card>
 
@@ -175,7 +231,7 @@ const LabourManagementPage = () => {
                             <CardTitle className="text-sm font-medium text-muted-foreground">Allowed (at Projection)</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{projectedAllowed.toFixed(2)} hrs</div>
+                            <div className="text-2xl font-bold">{calculatedMetrics.projectedAllowed.toFixed(2)} hrs</div>
                             <p className="text-xs text-muted-foreground">Based on labour matrix</p>
                         </CardContent>
                     </Card>
@@ -202,7 +258,7 @@ const LabourManagementPage = () => {
                             <div className="p-4 rounded-lg border border-border">
                                 <p className="text-sm font-semibold mb-1">Impact of Projection</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Hitting your projection of ${sales.projection || "0"} will {projectedGainLoss >= 0 ? "gain" : "cost"} you {Math.abs(projectedGainLoss).toFixed(2)} hours relative to your current schedule.
+                                    Hitting your projection of ${sales.projection || "0"} will {calculatedMetrics.projectedGainLoss >= 0 ? "gain" : "cost"} you {Math.abs(calculatedMetrics.projectedGainLoss).toFixed(2)} hours relative to your current schedule.
                                 </p>
                             </div>
                             <div className="p-4 rounded-lg border border-border">
