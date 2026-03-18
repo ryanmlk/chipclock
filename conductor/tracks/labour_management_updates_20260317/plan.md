@@ -11,11 +11,11 @@
 
 ## Phase 2: EOD Projection Integration
 
-- [ ] Task: Integrate sales projection as initial value for EOD Projection.
-    - [ ] Write failing tests for EOD Projection initialization.
-    - [ ] Modify EOD Projection component to load sales projection as initial value.
-    - [ ] Commit changes for EOD Projection initialization.
-- [ ] Task: Conductor - User Manual Verification 'EOD Projection Integration' (Protocol in workflow.md)
+- [x] Task: Integrate sales projection as initial value for EOD Projection. ad26f46
+    - [x] Write failing tests for EOD Projection initialization.
+    - [x] Modify EOD Projection component to load sales projection as initial value.
+    - [x] Commit changes for EOD Projection initialization.
+- [x] Task: Conductor - User Manual Verification 'EOD Projection Integration' (Protocol in workflow.md)
 
 ## Phase 3: User Input and Metric Calculation
 
