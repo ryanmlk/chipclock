@@ -52,6 +52,36 @@ def extract_start_date(pdf_path):
         logging.info("Start Date not found in PDF.")
         return None
 
+def extract_sales_projections(pdf_path, start_date=None):
+    if not start_date:
+        start_date = extract_start_date(pdf_path)
+    if not start_date:
+        return None
+    
+    days = [(start_date + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
+    
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if not text:
+                continue
+            
+            if "Forecasted Sales Total" in text:
+                # Find the line starting with "Forecasted Sales Total"
+                lines = text.split('\n')
+                for line in lines:
+                    if "Forecasted Sales Total" in line:
+                        # Extract all currency values
+                        amounts = re.findall(r"\$([\d,]+\.\d{2})", line)
+                        
+                        if len(amounts) >= 7:
+                            projections = {}
+                            for i in range(7):
+                                val = float(amounts[i].replace(',', ''))
+                                projections[days[i]] = val
+                            return projections
+    return None
+
 def is_name_cell(cell):
     return bool(cell) and "," in cell and not any(char.isdigit() for char in cell)
 
@@ -94,8 +124,10 @@ def parse_time_range(time_range):
 def extract_data_from_pdf(pdf_path):
     start_date = extract_start_date(pdf_path)
     if not start_date:
-        return None, None
+        return None, None, None
         
+    projections = extract_sales_projections(pdf_path, start_date)
+    
     with pdfplumber.open(pdf_path) as pdf:
         # Assuming schedule is on the first page, or we iterate through all pages
         schedule = defaultdict(list)
@@ -104,7 +136,7 @@ def extract_data_from_pdf(pdf_path):
             for name, shifts in page_schedule.items():
                 schedule[name].extend(shifts)
                 
-    return schedule, start_date
+    return schedule, start_date, projections
 
 def extract_shifts(page, week_start):
     days = [(week_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
@@ -259,7 +291,7 @@ def check_employee_exists(cur, conn, name):
         return new_id
     return None
 
-def insert_schedule_to_db(schedule, start_date):
+def insert_schedule_to_db(schedule, start_date, projections=None):
     with psycopg2.connect(DB_CONN_STR) as conn:
         with conn.cursor() as cur:
             cur.execute('SELECT id FROM "public"."WeeklySchedule" WHERE week_start_date = %s', (start_date,))
@@ -295,6 +327,28 @@ def insert_schedule_to_db(schedule, start_date):
                     execute_values(cur, sql, rows)
             conn.commit()
 
+            if projections:
+                insert_projections_to_db(cur, conn, weekly_schedule_id, projections)
+
+def insert_projections_to_db(cur, conn, weekly_schedule_id, projections):
+    # First, delete existing sales projections for this weekly schedule
+    cur.execute('DELETE FROM "public"."DailyKPI" WHERE weekly_schedule_id = %s AND kpi_name = %s', (weekly_schedule_id, 'sales_projection'))
+    
+    rows = []
+    for date_str, value in projections.items():
+        rows.append((
+            weekly_schedule_id,
+            date_str,
+            value,
+            'sales_projection'
+        ))
+    
+    if rows:
+        sql = 'INSERT INTO "public"."DailyKPI" (weekly_schedule_id, date, kpi_value, kpi_name) VALUES %s'
+        execute_values(cur, sql, rows)
+    conn.commit()
+    logging.info(f"Inserted {len(rows)} sales projections for weekly schedule {weekly_schedule_id}")
+
 def delete_old_shifts(week_start_date):
     """Utility to clean up old shifts if needed independently."""
     with psycopg2.connect(DB_CONN_STR) as conn:
@@ -320,10 +374,10 @@ def parse_schedule(pdf_source):
         else:
             pdf_path = pdf_source
 
-        schedule, start_date = extract_data_from_pdf(pdf_path)
+        schedule, start_date, projections = extract_data_from_pdf(pdf_path)
         
         if schedule and start_date:
-            insert_schedule_to_db(schedule, start_date)
+            insert_schedule_to_db(schedule, start_date, projections)
             logging.info(f"Successfully parsed and stored schedule for week starting {start_date.date()}")
             return True
         return False
