@@ -35,6 +35,11 @@ The MVP will focus on the core functionalities essential for immediate value del
 - **Secure Login:** Implement secure authentication for managers and employees (e.g., email/password or SSO if applicable to Chipotle's existing systems).
 - **Role-Based Access Control (RBAC):** Differentiate access and functionalities between managers and employees (e.g., only managers can create/edit schedules).
 
+### 3.5 Sales Projection and EOD Metrics
+- Extraction of sales projection data from "Chipotle Weekly Schedule.pdf".
+- Calculation of updated EOD (End of Day) projection metrics, including Matrix Hours, Predicted Closing Hours, and Sales Target.
+- User input for current sales figures and defaulted current hours.
+
 ## 4.0 Technical Specification
 
 ### 4.1 Architecture
