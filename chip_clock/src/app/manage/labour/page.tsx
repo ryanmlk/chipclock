@@ -23,6 +23,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const LabourManagementPage = () => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    const [isTimeModified, setIsTimeModified] = React.useState(false);
     const [selectedDateTime, setSelectedDateTime] = React.useState<Date>(new Date());
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
     const { shifts: allShifts, loading: scheduleLoading, fetchShifts } = useScheduleStore();
@@ -33,6 +35,7 @@ const LabourManagementPage = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         fetchShifts({ start: today, end: today });
+        setIsMounted(true);
     }, [fetchLabourData, fetchShifts]);
 
     const loading = labourLoading || scheduleLoading;
@@ -121,6 +124,11 @@ const LabourManagementPage = () => {
             remainingHours: remainingScheduledHours
         });
 
+        if (isTimeModified) {
+            toast.info("Simulation mode: metrics not saved to database");
+            return;
+        }
+
         // Save to DB
         try {
             await api.labour.saveKPI({
@@ -136,6 +144,10 @@ const LabourManagementPage = () => {
         }
     };
 
+    if (!isMounted) {
+        return null;
+    }
+
     return (
         <div className="space-y-6 relative min-h-[400px]">
             {loading && <LoadingOverlay message="Fetching latest labour data..." />}
@@ -143,7 +155,24 @@ const LabourManagementPage = () => {
                 <div>
                     <h1 className="text-3xl font-bold flex flex-col items-start gap-2 mb-2">
                         Labour Management 
-                        <DateTimePicker value={selectedDateTime} onChange={setSelectedDateTime} />
+                        <DateTimePicker 
+                            value={selectedDateTime} 
+                            onChange={(newDate) => {
+                                setIsTimeModified(true);
+                                setSelectedDateTime(newDate);
+                                // Recalculate scheduled hours up to the new time
+                                const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
+                                const newScheduledHours = todaysShifts.reduce((acc, shift) => {
+                                    const start = new Date(shift.shift_start);
+                                    const end = new Date(shift.shift_end);
+                                    if (start >= newDate) return acc;
+                                    const effectiveEnd = end < newDate ? end : newDate;
+                                    const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+                                    return acc + hours;
+                                }, 0);
+                                setSales({ ...sales, actualHours: newScheduledHours.toFixed(2) });
+                            }} 
+                        />
                     </h1>
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
                 </div>
