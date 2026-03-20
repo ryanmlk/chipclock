@@ -56,7 +56,6 @@ const DeploymentPage = () => {
         selectedDate,
         view,
         setSelectedDate,
-        setView,
         fetchShifts
     } = useScheduleStore();
 

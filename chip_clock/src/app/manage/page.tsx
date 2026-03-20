@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 
 export default function ManagePage() {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading] = useState(false);
 
     return (
         <div className="container mx-auto p-6">

@@ -11,7 +11,7 @@ export default function DeploymentPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [schedule, setSchedule] = useState<Shift[]>([]);
-  const [calendarFeedUrl, setCalendarFeedUrl] = useState("");
+
 
   const fetchSchedule = useCallback(
     async (nameParam?: string) => {
@@ -60,11 +60,6 @@ export default function DeploymentPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    setCalendarFeedUrl(
-      `${window.location.origin}/api/calendar/${encodeURIComponent(name)}.ics`
-    );
-  }, [name]);
 
   useEffect(() => {
     const storedName = localStorage.getItem("scheduleName");
@@ -72,7 +67,7 @@ export default function DeploymentPage() {
       setName(storedName);
       fetchSchedule(storedName);
     }
-  }, []);
+  }, [fetchSchedule]);
 
   return (
     <div className="p-4">

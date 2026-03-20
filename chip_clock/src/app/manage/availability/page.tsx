@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, Download, Printer } from "lucide-react";
 import { Position } from "@/types/enums";
@@ -24,11 +19,7 @@ import type { AvailabilitySlot, Employee } from "@/generated/prisma/client";
 import AvailabilityDialog from "@/components/availabilityDialog";
 import { fetchAvailabilitiesAPI } from "@/lib/api/availability";
 
-interface Stats {
-  totalEmployees: number;
-  availableToday: number;
-  bestCoveredDay: string;
-}
+
 
 interface PositionOptions {
   value: Position;
@@ -48,11 +39,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
   const [positionFilter, setPositionFilter] = useState<Position>(Position.All);
   const [employeeFilter, setEmployeeFilter] = useState<string>("");
   const [weekStart, setWeekStart] = useState<string>("");
-  const [stats, setStats] = useState<Stats>({
-    totalEmployees: 0,
-    availableToday: 0,
-    bestCoveredDay: "-",
-  });
+
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingSlots, setEditingSlots] = useState<AvailabilitySlot[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -241,37 +228,14 @@ const ChipotleAvailabilityTracker: React.FC = () => {
     return formattedSlots;
   };
 
-  const fetchAvailabilities = async () => {
+  const fetchAvailabilities = useCallback(async () => {
     setLoading(true);
     const data = await fetchAvailabilitiesAPI(positionFilter, employeeFilter);
     setFilteredAvailabilities(formatAvailabilities(data!));
     setLoading(false);
-  };
+  }, [positionFilter, employeeFilter]);
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch("/api/availability/stats");
-      if (!response.ok) throw new Error("Failed to fetch stats");
 
-      const data = await response.json();
-      setStats(data);
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    }
-  };
-
-  const deleteEmployee = async (id: number) => {
-    try {
-      const response = await fetch(`/api/availability/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete employee");
-    } catch (error) {
-      console.error("Error deleting employee:", error);
-      throw error;
-    }
-  };
 
   const getMonday = (date: Date): Date => {
     const d = new Date(date);
@@ -280,20 +244,20 @@ const ChipotleAvailabilityTracker: React.FC = () => {
     return new Date(d.setDate(diff));
   };
 
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     fetchAvailabilities();
     // fetchStats();
-  };
+  }, [fetchAvailabilities]);
 
   useEffect(() => {
     setWeekStart(getMonday(new Date()).toISOString().split("T")[0]);
     refreshData();
-  }, []);
+  }, [refreshData]);
 
   // UPDATED: Fetch data when filters change
   useEffect(() => {
     refreshData();
-  }, [positionFilter, employeeFilter]);
+  }, [positionFilter, employeeFilter, refreshData]);
 
   const handleAddAvailability = (): void => {
     setEditingSlots(null);
@@ -444,39 +408,7 @@ const ChipotleAvailabilityTracker: React.FC = () => {
         </Button>
       </div>
 
-      {/* UPDATED: Stats using API data */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gray-700 border-gray-600">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-bold text-white">
-              {stats.totalEmployees}
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Total Employees
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="bg-gray-700 border-gray-600">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-bold text-white">
-              {stats.availableToday}
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Available Today
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card className="bg-gray-700 border-gray-600">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-bold text-white">
-              {stats.bestCoveredDay}
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Best Covered Day
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+
 
       {/* Table */}
       <div className="overflow-x-auto h-full">

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        const result: Record<string, any> = {};
+        const result: Record<string, number | string | null> = {};
         kpis.forEach(kpi => {
             result[kpi.kpi_name] = kpi.kpi_value;
         });

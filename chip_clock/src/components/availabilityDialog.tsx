@@ -180,33 +180,6 @@ export default function AvailabilityDialog({
     onSave();
   };
 
-  const updateAvailability = async (id: string, formData: FormData) => {
-    try {
-      const response = await fetch(`/api/availability/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          employee_id: formData.employee_id,
-          monday: formData.monday,
-          tuesday: formData.tuesday,
-          wednesday: formData.wednesday,
-          thursday: formData.thursday,
-          friday: formData.friday,
-          saturday: formData.saturday,
-          sunday: formData.sunday,
-          daysHr: formData.weeklyHrs,
-          effectiveDate: formData.effectiveDate,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update employee");
-    } catch (error) {
-      console.error("Error updating employee:", error);
-      throw error;
-    }
-  };
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>

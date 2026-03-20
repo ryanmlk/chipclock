@@ -2,7 +2,7 @@ export const api = {
     labour: {
         getMatrix: () => fetch("/api/labour/matrix").then(res => res.json()),
         getSalesProjection: (date: string) => fetch(`/api/labour/projection?date=${date}`).then(res => res.json()),
-        saveKPI: (data: any) =>
+        saveKPI: (data: unknown) =>
             fetch("/api/labour/kpi", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

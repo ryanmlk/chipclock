@@ -16,7 +16,7 @@ type WeeklyHours = {
 
 export function WeeklyHoursCard({ name }: Props) {
   const [weeklyHours, setWeeklyHours] = useState<WeeklyHours[]>([]);
-  const [hoursChanged, setHoursChanged] = useState(0);
+
   const [hoursChangedPercent, setHoursChangedPercent] = useState(0);
 
   const fetchWeeklyHours = useCallback(async () => {
@@ -37,7 +37,6 @@ export function WeeklyHoursCard({ name }: Props) {
     if (weeklyHours.length > 2) {
       const currentWeekHours = weeklyHours[0].total_hours;
       const lastWeekHours = weeklyHours[1].total_hours;
-      setHoursChanged(currentWeekHours - lastWeekHours);
       const percentChange =
         lastWeekHours !== 0
           ? ((currentWeekHours - lastWeekHours) / Math.abs(lastWeekHours)) * 100

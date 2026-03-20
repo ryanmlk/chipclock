@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 
 export async function POST(req: NextRequest) {
     try {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
         const targetDate = new Date(date);
         const start = startOfDay(targetDate);
-        const end = endOfDay(targetDate);
+
 
         // Find the weekly schedule for this date
         const weeklySchedule = await prisma.weeklySchedule.findFirst({

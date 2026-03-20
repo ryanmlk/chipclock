@@ -4,9 +4,7 @@ import { useLabourStore } from '@/store/useLabourStore';
 import { useScheduleStore } from '@/store/useScheduleStore';
 import { api } from '@/lib/api';
 import React from 'react';
-import { DayPicker, DateUtils } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { formatTimeLocal } from '@/lib/dateUtils'; // Might need formatDateLocal too, depending on how date/time are handled together
 
 // Mock the stores
 jest.mock('@/store/useLabourStore');
@@ -41,7 +39,7 @@ const mockDate = (isoDateString: string) => {
                 super(isoDateString);
             }
         }
-    } as any;
+    } as unknown as typeof Date;
 };
 
 afterAll(() => {
@@ -75,7 +73,7 @@ describe('LabourManagementPage - Phase 3', () => {
         const now = new Date('2026-03-17T12:00:00.000Z'); // Use the mocked date
         const start = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago from mocked time
         const end = new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours from now from mocked time
-        
+
         (useScheduleStore as unknown as jest.Mock).mockReturnValue({
             shifts: [
                 { id: '1', shift_start: start.toISOString(), shift_end: end.toISOString(), hours: '6.0' }
@@ -100,7 +98,7 @@ describe('LabourManagementPage - Phase 3', () => {
         });
 
         render(<LabourManagementPage />);
-        
+
         const projectionInput = screen.getByPlaceholderText(/e.g. 7500/i) as HTMLInputElement;
         expect(projectionInput.value).toBe("7500");
     });
@@ -109,7 +107,7 @@ describe('LabourManagementPage - Phase 3', () => {
         const now = new Date('2026-03-17T12:00:00.000Z'); // Mocked time
         const start = new Date(now.getTime() - 4 * 60 * 60 * 1000); // 4 hours ago from mocked time
         const end = new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours from now from mocked time
-        
+
         const mockShifts = [
             { id: '1', shift_start: start.toISOString(), shift_end: end.toISOString(), hours: '8.0' }
         ];
@@ -129,7 +127,7 @@ describe('LabourManagementPage - Phase 3', () => {
         });
 
         render(<LabourManagementPage />);
-        
+
         // Wait for the effect that sets the default hours.
         // The shift is 8 hours total. If it started 4 hours ago and ends 4 hours from now,
         // and `now` is exactly in the middle, then `scheduledHoursUpToNow` should be 4.0.
@@ -144,7 +142,7 @@ describe('LabourManagementPage - Phase 3', () => {
         const now = new Date('2026-03-17T12:00:00.000Z'); // Mocked time
         const start = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago from mocked time
         const end = new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours from now from mocked time
-        
+
         const mockShifts = [
             { id: '1', shift_start: start.toISOString(), shift_end: end.toISOString(), hours: '6.0' } // 6 hour shift
         ];
@@ -219,8 +217,8 @@ describe('LabourManagementPage - Phase 3', () => {
         render(<LabourManagementPage />);
 
         // Check if the inputs are populated with the values from the store
-        expect(screen.getByPlaceholderText(/Total hours clocked in/i)).toHaveValue("30.00");
-        expect(screen.getByPlaceholderText(/e.g. 4500/i)).toHaveValue("5500");
-        expect(screen.getByPlaceholderText(/e.g. 7500/i)).toHaveValue("7000");
+        expect(screen.getByPlaceholderText(/Total hours clocked in/i)).toHaveValue(30.00);
+        expect(screen.getByPlaceholderText(/e.g. 4500/i)).toHaveValue(5500);
+        expect(screen.getByPlaceholderText(/e.g. 7500/i)).toHaveValue(7000);
     });
 });
