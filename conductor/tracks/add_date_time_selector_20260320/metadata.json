@@ -1,0 +1,8 @@
+{
+  "track_id": "add_date_time_selector_20260320",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-20T10:30:00Z",
+  "updated_at": "2026-03-20T10:30:00Z",
+  "description": "Add a date and time selector on the labour management page that allows me to select any date and time in the future to manage labour ahead of time and also to allow me to test if all calculations are proper. Do not edit any other components other than adding this new selector and updating any logic that uses the current date and time in calculations to use the date and time I select through this. The default value will be the current date and time"
+}
