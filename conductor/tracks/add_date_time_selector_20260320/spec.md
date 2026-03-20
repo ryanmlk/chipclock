@@ -14,6 +14,7 @@ This track introduces a new date and time selector to the Labour Management Dash
 - The selector must only allow users to select dates and times that are in the future relative to the current system time.
 - The default value of the selector will be the current date and time at the moment the Labour Management Dashboard page loads.
 - The selected date and time value will be used as the reference point for all relevant calculations that currently rely on the system's current date and time. This specifically includes calculations involving remaining hours in a day, which will now be calculated against the selected date and time.
+- If the date or time is manually changed using the selector, a simulation mode is triggered. During simulation mode, metrics are updated dynamically on the screen but are prevented from being saved to the database.
 
 ### 2.3 UI Component
 - The Shadcn DatePicker component will be utilized for implementing the date and time selector to ensure consistency with the existing UI.
