@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import LabourManagementPage from './page';
 import { useLabourStore } from '@/store/useLabourStore';
 import { useScheduleStore } from '@/store/useScheduleStore';
@@ -220,5 +220,61 @@ describe('LabourManagementPage - Phase 3', () => {
         expect(screen.getByPlaceholderText(/Total hours clocked in/i)).toHaveValue(30.00);
         expect(screen.getByPlaceholderText(/e.g. 4500/i)).toHaveValue(5500);
         expect(screen.getByPlaceholderText(/e.g. 7500/i)).toHaveValue(7000);
+    });
+
+    it('should recalculate remaining hours when time is changed', async () => {
+        const mockNow = new Date('2026-03-17T12:00:00.000Z');
+        mockDate(mockNow.toISOString());
+
+        const mockShifts = [
+            { id: '1', shift_start: new Date(mockNow.getTime() - 2 * 60 * 60 * 1000).toISOString(), shift_end: new Date(mockNow.getTime() + 4 * 60 * 60 * 1000).toISOString(), hours: '6.0' }
+        ];
+
+        (useLabourStore as unknown as jest.Mock).mockReturnValue({
+            matrix: [],
+            sales: { current: "5500", projection: "7000", actualHours: "30.00" },
+            loading: false,
+            setSales: mockSetSales,
+            fetchLabourData: mockFetchLabourData,
+        });
+
+        (useScheduleStore as unknown as jest.Mock).mockReturnValue({
+            shifts: mockShifts,
+            loading: false,
+            fetchShifts: mockFetchShifts,
+        });
+
+        render(<LabourManagementPage />);
+
+        const calcBtn = screen.getAllByRole('button', { name: /Calculate/i })[0];
+        fireEvent.click(calcBtn);
+
+        // Initially at 12:00 PM, 4 hours remaining
+        await waitFor(() => {
+            const matches = screen.getAllByText(/4\.00 hrs/i);
+            expect(matches.length).toBeGreaterThan(0);
+        });
+
+        // Open DateTimePicker
+        const pickerBtn = screen.getByRole('button', { name: /Mar/i }); // Will match formatting for March 17th
+        fireEvent.click(pickerBtn);
+
+        // Find hours input and change it to 14 (2 PM local, mocking local hour + 2)
+        const hoursInput = screen.getByLabelText('Hours');
+        act(() => {
+            // we'll just bump the existing hour up by 2 to simulate moving 2 hours ahead
+            // since timezone could affect the local hour value
+            const currentHourStr = (hoursInput as HTMLInputElement).value;
+            const nextHour = parseInt(currentHourStr, 10) + 2;
+            fireEvent.change(hoursInput, { target: { value: nextHour.toString() } });
+        });
+
+        fireEvent.click(calcBtn);
+
+        // Now it's 2 hours later, so remaining hours of the shift (ends at 4 PM mock time) should be 2.00
+        await waitFor(() => {
+            const matches = screen.getAllByText(/2\.00 hrs/i);
+            expect(matches.length).toBeGreaterThan(0);
+        });
     });
 });
