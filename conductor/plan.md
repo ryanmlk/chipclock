@@ -1,6 +1,6 @@
 # Plan: Labour Management Updates
 
-## Phase 1: Sales Projection Extraction
+## Phase 1: Sales Projection Extraction [checkpoint: d3817b7]
 
 - [x] Task: Implement sales projection extraction logic from "Chipotle Weekly Schedule.pdf". 58dc5e9
     - [x] Write failing tests for PDF parsing and sales data extraction.
