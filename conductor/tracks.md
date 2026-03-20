@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Labour Management Updates**
+- [x] **Track: Labour Management Updates**
 *Link: [./tracks/labour_management_updates_20260317/](./tracks/labour_management_updates_20260317/)*
