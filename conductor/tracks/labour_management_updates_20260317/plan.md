@@ -19,19 +19,19 @@
 
 ## Phase 3: User Input and Metric Calculation
 
-- [ ] Task: Implement user input for current sales and default hours.
-    - [ ] Write failing tests for current sales input and default hours calculation.
-    - [ ] Add input fields for current sales.
-    - [ ] Implement logic to default current hours based on schedule and time.
-    - [ ] Commit changes for user input and default hours.
-- [ ] Task: Implement metric calculation logic.
-    - [ ] Write failing tests for Matrix Hours, Predicted Closing Hours, and Sales Target calculations.
-    - [ ] Implement calculation logic for Matrix Hours.
-    - [ ] Implement calculation logic for Predicted Closing Hours.
-    - [ ] Implement calculation logic for Sales Target.
-    - [ ] Add "Calculate" button to trigger metric updates.
-    - [ ] Commit changes for metric calculation.
-- [ ] Task: Conductor - User Manual Verification 'User Input and Metric Calculation' (Protocol in workflow.md)
+- [x] Task: Implement user input for current sales and default hours. cfe3c06
+    - [x] Write failing tests for current sales input and default hours calculation.
+    - [x] Add input fields for current sales.
+    - [x] Implement logic to default current hours based on schedule and time.
+    - [x] Commit changes for user input and default hours.
+- [x] Task: Implement metric calculation logic. cfe3c06
+    - [x] Write failing tests for Matrix Hours, Predicted Closing Hours, and Sales Target calculations.
+    - [x] Implement calculation logic for Matrix Hours.
+    - [x] Implement calculation logic for Predicted Closing Hours.
+    - [x] Implement calculation logic for Sales Target.
+    - [x] Add "Calculate" button to trigger metric updates.
+    - [x] Commit changes for metric calculation.
+- [x] Task: Conductor - User Manual Verification 'User Input and Metric Calculation' (Protocol in workflow.md)
 
 ## Phase 4: Testing and Refinement
 
