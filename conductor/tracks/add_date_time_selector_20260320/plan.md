@@ -1,6 +1,6 @@
 # Implementation Plan: Future Date and Time Selector for Labour Management
 
-## Phase 1: Development and Initial Testing
+## Phase 1: Development and Initial Testing [checkpoint: 7a5397c]
 - [x] **Task: Add date and time selector component to Labour Management Dashboard.**
     - [x] Write unit tests for the new date and time selector component.
     - [x] Implement the Shadcn DatePicker component on the Labour Management Dashboard.
@@ -19,7 +19,7 @@
     - [x] Implement validation to only allow future dates.
     - [x] Commit code changes.
     - [x] Update plan.md with commit SHA (05c24d7f859f932cd96b29eda32535ee752420f4).
-- [ ] **Task:** Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] **Task:** Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Testing, Refinement, and Code Quality
 - [ ] **Task: Verify non-functional requirements.**
