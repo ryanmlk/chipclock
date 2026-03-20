@@ -11,8 +11,9 @@ import {
     CardContent,
     CardDescription,
 } from "@/components/ui/card";
-import { Settings, TrendingUp, TrendingDown, Target, Calculator } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Calculator, Settings } from "lucide-react";
 import { isSameDay } from "date-fns";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 
 import { useLabourStore } from "@/store/useLabourStore";
 import { useScheduleStore } from "@/store/useScheduleStore";
@@ -22,6 +23,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const LabourManagementPage = () => {
+    const [selectedDateTime, setSelectedDateTime] = React.useState<Date>(new Date());
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
     const { shifts: allShifts, loading: scheduleLoading, fetchShifts } = useScheduleStore();
 
@@ -34,7 +36,7 @@ const LabourManagementPage = () => {
     }, [fetchLabourData, fetchShifts]);
 
     const loading = labourLoading || scheduleLoading;
-    const now = new Date();
+    const now = selectedDateTime;
     // Filter the global shifts list to only show today's shifts for these calculations
     const shifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), now));
 
@@ -139,7 +141,10 @@ const LabourManagementPage = () => {
             {loading && <LoadingOverlay message="Fetching latest labour data..." />}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Labour Management <p className="text-lg">{now.toDateString()}</p></h1>
+                    <h1 className="text-3xl font-bold flex flex-col items-start gap-2 mb-2">
+                        Labour Management 
+                        <DateTimePicker value={selectedDateTime} onChange={setSelectedDateTime} />
+                    </h1>
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
                 </div>
                 <Button variant="outline" asChild>
