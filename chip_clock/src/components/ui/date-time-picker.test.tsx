@@ -10,6 +10,7 @@ describe('DateTimePicker', () => {
     global.Date = class extends RealDate {
       constructor(dateString?: string | number | Date) {
         if (dateString) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           super(dateString as any);
         } else {
           super(isoString);
@@ -18,6 +19,7 @@ describe('DateTimePicker', () => {
       static now() {
         return new RealDate(isoString).getTime();
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
   };
 
