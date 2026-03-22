@@ -65,8 +65,10 @@ const LabourManagementPage = () => {
     }, [loading, shifts.length, sales.actualHours, scheduledHoursUpToNow, setSales, sales]);
 
     const totalScheduledHours = shifts.reduce((acc, shift) => {
-        const h = shift.hours ? parseFloat(shift.hours) : 0;
-        return h === 10 ? acc : acc + h;
+        const start = new Date(shift.shift_start);
+        const end = new Date(shift.shift_end);
+        const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        return acc + hours;
     }, 0);
 
     const getAllowedHours = (targetSales: number) => {
