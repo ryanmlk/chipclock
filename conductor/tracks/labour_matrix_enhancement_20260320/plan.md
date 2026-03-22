@@ -1,6 +1,6 @@
 # Implementation Plan: Labour Matrix Calculation and UI Enhancement
 
-## Phase 1: Calculation Logic and Initial UI Implementation
+## Phase 1: Calculation Logic and Initial UI Implementation [checkpoint: 8748e77]
 - [x] **Task: Update Labour Matrix calculation logic.**
     - [x] Write failing integration tests for the new calculation logic.
     - [x] Implement the logic to find the correct hour allowance based on sales projection and upper limits.
@@ -14,30 +14,30 @@
     - [x] Apply correct currency formatting ($, comma thousands separator, no decimals).
     - [x] Commit code changes.
     - [x] Update plan.md with commit SHA (faf5142).
-- [ ] **Task:** Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] **Task:** Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
-## Phase 2: Testing, Refinement, and Quality Assurance
-- [ ] **Task: Refactor code and tests.**
-    - [ ] Review and refactor the calculation logic implementation.
-    - [ ] Review and refactor the UI implementation.
-    - [ ] Review and refactor associated unit and integration tests.
-    - [ ] Commit code changes.
-    - [ ] Update plan.md with commit SHA.
-- [ ] **Task: Verify non-functional requirements.**
-    - [ ] Conduct manual testing to ensure performance is not negatively impacted.
-    - [ ] Ensure seamless integration and adherence to design patterns.
-    - [ ] Commit code changes.
-    - [ ] Update plan.md with commit SHA.
-- [ ] **Task:** Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+## Phase 2: Testing, Refinement, and Quality Assurance [checkpoint: 355fcae]
+- [x] **Task: Refactor code and tests.**
+    - [x] Review and refactor the calculation logic implementation.
+    - [x] Review and refactor the UI implementation.
+    - [x] Review and refactor associated unit and integration tests.
+    - [x] Commit code changes.
+    - [x] Update plan.md with commit SHA (N/A).
+- [x] **Task: Verify non-functional requirements.**
+    - [x] Conduct manual testing to ensure performance is not negatively impacted.
+    - [x] Ensure seamless integration and adherence to design patterns.
+    - [x] Commit code changes.
+    - [x] Update plan.md with commit SHA (N/A).
+- [x] **Task:** Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
-## Phase 3: Finalization and Documentation
-- [ ] **Task: Update relevant documentation.**
-    - [ ] Review `spec.md` and `product.md` for any necessary updates based on the implementation.
-    - [ ] Commit documentation changes.
-    - [ ] Update plan.md with commit SHA.
-- [ ] **Task: Ensure all code style and coverage requirements are met.**
-    - [ ] Run linters and formatters.
-    - [ ] Verify code coverage meets project requirements (>80%).
-    - [ ] Commit code changes.
-    - [ ] Update plan.md with commit SHA.
-- [ ] **Task:** Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+## Phase 3: Finalization and Documentation [checkpoint: feffd43]
+- [x] **Task: Update relevant documentation.**
+    - [x] Review `spec.md` and `product.md` for any necessary updates based on the implementation.
+    - [x] Commit documentation changes.
+    - [x] Update plan.md with commit SHA (N/A).
+- [x] **Task: Ensure all code style and coverage requirements are met.**
+    - [x] Run linters and formatters.
+    - [x] Verify code coverage meets project requirements (>80%).
+    - [x] Commit code changes.
+    - [x] Update plan.md with commit SHA (N/A).
+- [x] **Task:** Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
