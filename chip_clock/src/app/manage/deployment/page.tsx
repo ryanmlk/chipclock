@@ -178,7 +178,11 @@ const DeploymentPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {dayShifts.map((shift) => {
-                                const durationHours = (new Date(shift.shift_end).getTime() - new Date(shift.shift_start).getTime()) / (1000 * 60 * 60);
+                                const sStart = new Date(shift.shift_start).getTime();
+                                const sEnd = new Date(shift.shift_end).getTime();
+                                const durationHours = (sEnd - sStart) / (1000 * 60 * 60);
+                                const now = Date.now();
+                                const isShiftActive = now >= sStart && now <= sEnd;
                                 return (
                                     <div
                                         key={shift.id}
@@ -213,8 +217,10 @@ const DeploymentPage = () => {
                                         </h4>
                                         <p className="text-sm text-slate-500">Scheduled</p>
                                         <div className="mt-4 flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase">Station Active</span>
+                                            <div className={`w-3 h-3 rounded-full ${isShiftActive ? "bg-green-500" : "bg-slate-400"}`}></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                                {isShiftActive ? "Station Active" : "Station Inactive"}
+                                            </span>
                                         </div>
                                     </div>
                                 );
