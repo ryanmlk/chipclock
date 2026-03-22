@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from "@/lib/api";
-import { formatTimeLocal } from "@/lib/dateUtils";
+import { formatDateLocal } from "@/lib/dateUtils";
 
 export interface MatrixItem {
     id: string;
@@ -28,21 +28,28 @@ export const useLabourStore = create<LabourState>((set, get) => ({
     setSales: (sales) => set({ sales }),
     setLoading: (loading) => set({ loading }),
     fetchLabourData: async (force = false) => {
-        const { lastFetched, loading } = get();
-        const today = formatTimeLocal(new Date());
+        const { lastFetched, loading, sales } = get();
+        const todayStr = formatDateLocal(new Date());
 
         // Don't refetch matrix if already fetched today (unless forced)
-        if (!force && lastFetched === today && !loading) return;
+        if (!force && lastFetched === todayStr && !loading) return;
 
         set({ loading: true });
         try {
             const matrixData = await api.labour.getMatrix();
+            const kpiData = await api.labour.getSalesProjection(todayStr);
+
             set({
                 matrix: Array.isArray(matrixData) ? matrixData : [],
-                lastFetched: today
+                sales: {
+                    current: kpiData?.actual_sales?.toString() || sales.current,
+                    projection: kpiData?.sales_projection?.toString() || sales.projection,
+                    actualHours: kpiData?.actual_hours?.toString() || sales.actualHours
+                },
+                lastFetched: todayStr
             });
         } catch (error) {
-            console.error("Error fetching labour matrix:", error);
+            console.error("Error fetching labour data:", error);
         } finally {
             set({ loading: false });
         }

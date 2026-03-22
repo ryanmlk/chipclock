@@ -25,8 +25,8 @@ const items = [
     icon: AlarmClock,
   },
   {
-    title: "Schedule",
-    url: "/manage/schedule",
+    title: "Deployment",
+    url: "/manage/deployment",
     icon: Calendar,
   },
   {
@@ -44,7 +44,7 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="h-18 flex items-center px-4">
+      <SidebarHeader className="flex items-center px-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
             <UtensilsCrossed className="text-white w-5 h-5" />

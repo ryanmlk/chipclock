@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Shift, Employee } from "@/generated/prisma";
+import type { Shift, Employee } from "@/generated/prisma/client";
 import { api } from "@/lib/api";
 import { startOfWeek, addDays, addHours } from "date-fns";
 

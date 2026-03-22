@@ -1,6 +1,6 @@
 import { Position } from "@/types/enums";
 import { apiFetch } from "./apiClient";
-import { AvailabilitySlot, Employee } from "@/generated/prisma";
+import type { AvailabilitySlot, Employee } from "@/generated/prisma/client";
 
 export async function fetchAvailabilitiesAPI(
   positionFilter: Position,

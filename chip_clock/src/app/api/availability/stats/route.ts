@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Pool } from "pg";
 
 const pool = new Pool({
@@ -8,15 +8,15 @@ const pool = new Pool({
   },
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const client = await pool.connect();
-  
+
   try {
     // Get total employees count
     const totalEmployeesResult = await client.query(
       'SELECT COUNT(*) as total FROM employee_availability'
     );
-    
+
     // Get available today (Monday) - assuming today is Monday for the example
     // You might want to make this dynamic based on actual day
     const availableTodayResult = await client.query(`
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         AND monday != 'A/T' 
         AND monday != 'N/A'
     `);
-    
+
     // Get best covered day
     const bestCoveredDayResult = await client.query(`
       SELECT 
@@ -80,15 +80,15 @@ export async function GET(req: NextRequest) {
       ORDER BY coverage DESC
       LIMIT 1
     `);
-    
+
     const stats = {
       totalEmployees: parseInt(totalEmployeesResult.rows[0].total),
       availableToday: parseInt(availableTodayResult.rows[0].available),
-      bestCoveredDay: bestCoveredDayResult.rows.length > 0 
+      bestCoveredDay: bestCoveredDayResult.rows.length > 0
         ? bestCoveredDayResult.rows[0].day.substring(0, 3)
         : '-'
     };
-    
+
     return NextResponse.json(stats);
   } catch (error) {
     console.error('Error fetching stats:', error);

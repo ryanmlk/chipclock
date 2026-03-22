@@ -13,34 +13,17 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Save } from "lucide-react";
-
-interface MatrixItem {
-    id: string;
-    sales_level: number;
-    hours_allowed: number;
-}
+import { Trash2, Plus } from "lucide-react";
+import { useLabourStore } from "@/store/useLabourStore";
+import Link from 'next/link';
 
 const LabourConfigPage = () => {
-    const [matrix, setMatrix] = useState<MatrixItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { matrix, loading, fetchLabourData } = useLabourStore();
     const [newItem, setNewItem] = useState({ sales_level: "", hours_allowed: "" });
 
-    const fetchMatrix = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/labour/matrix");
-            const data = await res.json();
-            setMatrix(data);
-        } catch (error) {
-            console.error("Error fetching matrix:", error);
-        }
-        setLoading(false);
-    };
-
     useEffect(() => {
-        fetchMatrix();
-    }, []);
+        fetchLabourData();
+    }, [fetchLabourData]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,7 +36,7 @@ const LabourConfigPage = () => {
                 body: JSON.stringify(newItem),
             });
             setNewItem({ sales_level: "", hours_allowed: "" });
-            fetchMatrix();
+            fetchLabourData(true);
         } catch (error) {
             console.error("Error saving matrix item:", error);
         }
@@ -66,7 +49,7 @@ const LabourConfigPage = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id }),
             });
-            fetchMatrix();
+            fetchLabourData(true);
         } catch (error) {
             console.error("Error deleting matrix item:", error);
         }
@@ -118,9 +101,11 @@ const LabourConfigPage = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {matrix.map((item) => (
+                            {matrix.slice().sort((a,b) => a.sales_level - b.sales_level).map((item, index, sortedArr) => {
+                                const lowerLimit = index === 0 ? 0 : sortedArr[index - 1].sales_level + 1;
+                                return (
                                 <TableRow key={item.id}>
-                                    <TableCell>${item.sales_level.toLocaleString()}</TableCell>
+                                    <TableCell>${lowerLimit.toLocaleString()} to ${item.sales_level.toLocaleString()}</TableCell>
                                     <TableCell>{item.hours_allowed} hrs</TableCell>
                                     <TableCell className="text-right">
                                         <Button
@@ -132,7 +117,7 @@ const LabourConfigPage = () => {
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                             {matrix.length === 0 && !loading && (
                                 <TableRow>
                                     <TableCell colSpan={3} className="text-center text-muted-foreground">
@@ -146,7 +131,7 @@ const LabourConfigPage = () => {
             </Card>
             <div className="flex justify-between">
                 <Button variant="outline" asChild>
-                    <a href="/manage/labour">Back to Calculator</a>
+                    <Link href="/manage/labour">Back to Calculator</Link>
                 </Button>
             </div>
         </div>

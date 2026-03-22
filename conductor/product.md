@@ -21,8 +21,8 @@ The MVP will focus on the core functionalities essential for immediate value del
 - **PDF Parsing:** Accurately parse PDF schedule documents to extract employee names, shift timings (start and end), and assigned roles/positions.
 - **Data Standardization:** Convert extracted data into a standardized format compatible with the system's database schema.
 
-### 3.2 Schedule Management
-- **Shift Display:** Present extracted and manually entered shifts in a clear, weekly calendar view for managers and individual employees.
+### 3.2 Deployment Management
+- **Deployment Display:** Present extracted and manually entered shifts in a clear deployment view (e.g., daily shifts, filtered by time blocks) for managers and individual employees.
 - **Basic CRUD for Shifts:** Allow managers to Create, Read, Update, and Delete individual shifts within the application.
 - **Conflict Detection:** Highlight immediate scheduling conflicts (e.g., overlapping shifts for a single employee).
 
@@ -34,6 +34,11 @@ The MVP will focus on the core functionalities essential for immediate value del
 ### 3.4 User Authentication & Authorization
 - **Secure Login:** Implement secure authentication for managers and employees (e.g., email/password or SSO if applicable to Chipotle's existing systems).
 - **Role-Based Access Control (RBAC):** Differentiate access and functionalities between managers and employees (e.g., only managers can create/edit schedules).
+
+### 3.5 Sales Projection and EOD Metrics
+- Extraction of sales projection data from "Chipotle Weekly Schedule.pdf".
+- Calculation of updated EOD (End of Day) projection metrics, including Matrix Hours, Predicted Closing Hours, and Sales Target.
+- User input for current sales figures and defaulted current hours.
 
 ## 4.0 Technical Specification
 

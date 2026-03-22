@@ -1,0 +1,8 @@
+{
+  "track_id": "redesign_deployment_page_20260227",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-27T10:00:00Z",
+  "updated_at": "2026-02-27T10:00:00Z",
+  "description": "I want to redesign all the pages, for this track we will focus on the deployment page. It's currently called the schedule page but it has to be renamed to Deployment. The new design is completely different and has a lot of visual components. Break down the recurring components as much as possible and make them reusable. And there are 3 distinct sections in this page we will work on each section at a time. I will provide a screenshot of the page once the track folder is created until then you can use the stitch mcp to fetch all the screenshots and code using the instructions given below \ ## Stitch Instructions Get the images and code for the following Stitch project's screens: ## Project Title: Kitchen Operations Dashboard ID: 3770843060122289175 ## Screens: 1. Kitchen Operations Dashboard ID: 4a0d94f68b844a449e85d9cff9f6d861 Use a utility like `curl -L` to download the hosted URLs."
+}

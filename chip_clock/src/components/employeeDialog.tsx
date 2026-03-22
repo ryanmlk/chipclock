@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Employee, EmployeeRole } from "@/generated/prisma";
+import type { Employee } from "@/generated/prisma/client";
 import { Position } from "@/types/enums";
 
 interface EmployeeDialogProps {
@@ -29,12 +29,12 @@ interface EmployeeDialogProps {
 }
 
 const roleOptions = [
-    { value: EmployeeRole.crew, label: "Crew" },
-    { value: EmployeeRole.kitchen_manager, label: "KL (Kitchen Lead)" },
-    { value: EmployeeRole.service_manager, label: "SL (Service Lead)" },
-    { value: EmployeeRole.apprentice, label: "AP (Apprentice)" },
-    { value: EmployeeRole.manager, label: "GM (General Manager)" },
-    { value: EmployeeRole.certified_trainer, label: "CT (Certified Trainer)" },
+    { value: "crew", label: "Crew" },
+    { value: "kitchen_manager", label: "KL (Kitchen Lead)" },
+    { value: "service_manager", label: "SL (Service Lead)" },
+    { value: "apprentice", label: "AP (Apprentice)" },
+    { value: "manager", label: "GM (General Manager)" },
+    { value: "certified_trainer", label: "CT (Certified Trainer)" },
 ];
 
 const positionOptions = Object.values(Position)
@@ -52,7 +52,7 @@ export function EmployeeDialog({
         last_name: "",
         email: "",
         phone: "",
-        role: EmployeeRole.crew,
+        role: "crew" as Employee["role"],
         positions: [],
         status: "active",
     });
@@ -68,7 +68,7 @@ export function EmployeeDialog({
                 last_name: "",
                 email: "",
                 phone: "",
-                role: EmployeeRole.crew,
+                role: "crew" as Employee["role"],
                 positions: [],
                 status: "active",
             });
@@ -157,7 +157,7 @@ export function EmployeeDialog({
                         <Select
                             value={formData.role}
                             onValueChange={(val) =>
-                                setFormData({ ...formData, role: val as EmployeeRole })
+                                setFormData({ ...formData, role: val as Employee["role"] })
                             }
                         >
                             <SelectTrigger>

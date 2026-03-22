@@ -1,8 +1,5 @@
-# Project Tracks
+# Tracks Registry
 
-This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
+This document outlines all the tracks (features, bug fixes, chores) within the Schedule Extractor project. Each track is defined by a unique ID, a description, and a link to its dedicated folder containing its specification, plan, and metadata.
 
 ---
-
-- [~] **Track: Implement UI Redesign based on Stitch Project**
-  *Link: [./tracks/implement_ui_redesign_based_on_stitch_project_20260224/](./tracks/implement_ui_redesign_based_on_stitch_project_20260224/)*

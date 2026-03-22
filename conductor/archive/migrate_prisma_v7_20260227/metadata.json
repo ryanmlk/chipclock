@@ -1,0 +1,8 @@
+{
+  "track_id": "migrate_prisma_v7_20260227",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-02-27T00:00:00Z",
+  "updated_at": "2026-02-27T00:00:00Z",
+  "description": "Guidelines for migrating an app to Prisma ORM v7"
+}

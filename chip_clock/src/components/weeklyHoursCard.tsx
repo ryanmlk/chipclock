@@ -5,14 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { toast } from "sonner";
 
-const data = [
-  { value: 10 },
-  { value: 40 },
-  { value: 20 },
-  { value: 80 },
-  { value: 30 },
-];
-
 type Props = {
   name: string;
 };
@@ -24,7 +16,7 @@ type WeeklyHours = {
 
 export function WeeklyHoursCard({ name }: Props) {
   const [weeklyHours, setWeeklyHours] = useState<WeeklyHours[]>([]);
-  const [hoursChanged, setHoursChanged] = useState(0);
+
   const [hoursChangedPercent, setHoursChangedPercent] = useState(0);
 
   const fetchWeeklyHours = useCallback(async () => {
@@ -45,7 +37,6 @@ export function WeeklyHoursCard({ name }: Props) {
     if (weeklyHours.length > 2) {
       const currentWeekHours = weeklyHours[0].total_hours;
       const lastWeekHours = weeklyHours[1].total_hours;
-      setHoursChanged(currentWeekHours - lastWeekHours);
       const percentChange =
         lastWeekHours !== 0
           ? ((currentWeekHours - lastWeekHours) / Math.abs(lastWeekHours)) * 100
@@ -105,7 +96,7 @@ export function WeeklyHoursCard({ name }: Props) {
             margin={{ top: 0, right: 0, left: -30, bottom: 0 }}
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            <YAxis 
+            <YAxis
               tick={{ fill: "#aaa", fontSize: 11, fontWeight: 600 }}
             />
             <XAxis

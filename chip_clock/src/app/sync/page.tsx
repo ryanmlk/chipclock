@@ -1,5 +1,5 @@
 "use client";
-import { Shift } from "@/generated/prisma";
+import type { Shift } from "@/generated/prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";

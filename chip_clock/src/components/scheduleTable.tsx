@@ -1,7 +1,7 @@
 "use client"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Shift } from "@/generated/prisma";
+import type { Shift } from "@/generated/prisma/client";
 import { format } from 'date-fns';
 
 type Props = {

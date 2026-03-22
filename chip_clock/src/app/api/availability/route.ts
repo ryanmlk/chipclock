@@ -1,5 +1,5 @@
 import prisma from "@/app/prisma";
-import { AvailabilitySlot } from "@/generated/prisma";
+import type { AvailabilitySlot } from "@/generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {

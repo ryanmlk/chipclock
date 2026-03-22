@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 
 export default function ManagePage() {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading] = useState(false);
 
     return (
         <div className="container mx-auto p-6">
@@ -22,7 +22,7 @@ export default function ManagePage() {
                     
                     <div className="mt-4">
                         <p className="text-gray-600">
-                            Use this dashboard to manage your schedule settings and configurations.
+                            Use this dashboard to manage your deployment settings and configurations.
                         </p>
                     </div>
                 </div>

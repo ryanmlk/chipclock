@@ -19,7 +19,7 @@ import {
 import { EmployeeSelect } from "@/components/employeeSelect";
 import { TimeInput } from "@/components/timeInput";
 import { Input } from "@/components/ui/input";
-import { Employee, Shift } from "@/generated/prisma";
+import type { Employee, Shift } from "@/generated/prisma/client";
 import { Position } from "@/types/enums";
 import { format } from "date-fns";
 import { formatTimeLocal } from "@/lib/dateUtils";

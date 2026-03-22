@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,15 +11,22 @@ import {
     CardContent,
     CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Settings, TrendingUp, TrendingDown, Target, Calculator } from "lucide-react";
-import { format, isSameDay } from "date-fns";
+import { TrendingUp, TrendingDown, Target, Calculator, Settings } from "lucide-react";
+import { isSameDay } from "date-fns";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import Link from 'next/link';
 
 import { useLabourStore } from "@/store/useLabourStore";
 import { useScheduleStore } from "@/store/useScheduleStore";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { formatDateLocal } from "@/lib/dateUtils";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const LabourManagementPage = () => {
+    const [isMounted, setIsMounted] = React.useState(false);
+    const [isTimeModified, setIsTimeModified] = React.useState(false);
+    const [selectedDateTime, setSelectedDateTime] = React.useState<Date>(new Date());
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
     const { shifts: allShifts, loading: scheduleLoading, fetchShifts } = useScheduleStore();
 
@@ -29,23 +36,46 @@ const LabourManagementPage = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         fetchShifts({ start: today, end: today });
+        setIsMounted(true);
     }, [fetchLabourData, fetchShifts]);
 
     const loading = labourLoading || scheduleLoading;
-    const now = new Date();
-    // Filter the global shifts list to only show today's shifts for these calculations
-    const shifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), now));
+    const now = selectedDateTime;
+    // Filter the global shifts list to only show today's non-manager shifts
+    const shifts = allShifts.filter(s =>
+        isSameDay(new Date(s.shift_start), now) &&
+        s.employee?.role?.toLowerCase() !== 'manager'
+    );
+
+    // Calculate scheduled hours up to now
+    const scheduledHoursUpToNow = shifts.reduce((acc, shift) => {
+        const start = new Date(shift.shift_start);
+        const end = new Date(shift.shift_end);
+        if (start >= now) return acc;
+        const effectiveEnd = end < now ? end : now;
+        const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+        return acc + hours;
+    }, 0);
+
+    // Default current hours in store if empty
+    useEffect(() => {
+        if (!loading && shifts.length > 0 && sales.actualHours === "" && scheduledHoursUpToNow > 0) {
+            setSales({ ...sales, actualHours: scheduledHoursUpToNow.toFixed(2) });
+        }
+    }, [loading, shifts.length, sales.actualHours, scheduledHoursUpToNow, setSales, sales]);
 
     const totalScheduledHours = shifts.reduce((acc, shift) => {
-        const h = shift.hours ? parseFloat(shift.hours) : 0;
-        return h === 10 ? acc : acc + h;
+        const start = new Date(shift.shift_start);
+        const end = new Date(shift.shift_end);
+        const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        return acc + hours;
     }, 0);
 
     const getAllowedHours = (targetSales: number) => {
         if (matrix.length === 0) return 0;
-        // Find highest threshold that is <= targetSales
-        const sorted = [...matrix].sort((a, b) => b.sales_level - a.sales_level);
-        const match = sorted.find(m => m.sales_level <= targetSales);
+        // Find first threshold that covers the sales projection as an upper limit
+        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
+        const match = sorted.find(m => m.sales_level >= targetSales);
         return match ? match.hours_allowed : (sorted[sorted.length - 1]?.hours_allowed || 0);
     };
 
@@ -62,32 +92,103 @@ const LabourManagementPage = () => {
         ? (parseFloat(sales.actualHours) || 0) + remainingScheduledHours
         : totalScheduledHours;
 
-    const currentAllowed = getAllowedHours(parseFloat(sales.current) || 0);
-    const projectedAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
+    const [calculatedMetrics, setCalculatedMetrics] = React.useState({
+        currentAllowed: 0,
+        projectedAllowed: 0,
+        projectedGainLoss: 0,
+        currentGainLoss: 0,
+        salesTarget: "N/A" as string | number,
+        remainingHours: 0
+    });
 
-    const projectedGainLoss = projectedAllowed - totalScheduledHours;
-    const currentGainLoss = currentAllowed - effectiveCurrentHours;
+    const handleCalculate = async () => {
+        if (isTimeModified) {
+            toast.info("Simulation mode: metrics not saved to database");
+            return;
+        }
 
-    // Find sales target to match totalScheduledHours
-    const findSalesTarget = () => {
-        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
-        const target = sorted.find(m => m.hours_allowed >= totalScheduledHours);
-        return target ? target.sales_level : "N/A";
+        // Save to DB
+        try {
+            await api.labour.saveKPI({
+                date: formatDateLocal(now),
+                sales_projection: sales.projection,
+                actual_sales: sales.current,
+                actual_hours: sales.actualHours
+            });
+            toast.success("Metrics saved successfully");
+            // Also refresh data
+            fetchLabourData(true);
+        } catch (error) {
+            console.error("Error saving KPIs:", error);
+            toast.error("Failed to save metrics to database");
+        }
     };
+
+    // Auto-calculate metrics when dependencies change
+    useEffect(() => {
+        const cAllowed = getAllowedHours(parseFloat(sales.current) || 0);
+        const pAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
+
+        const predictedClosingHours = (parseFloat(sales.actualHours) || 0) + remainingScheduledHours;
+        const pGainLoss = pAllowed - totalScheduledHours;
+        const cGainLoss = cAllowed - effectiveCurrentHours;
+
+        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
+        let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+
+        if (!target && sorted.length > 0) {
+            target = sorted[sorted.length - 1];
+        }
+
+        const sTarget = target ? target.sales_level : "N/A";
+
+        setCalculatedMetrics({
+            currentAllowed: cAllowed,
+            projectedAllowed: pAllowed,
+            projectedGainLoss: pGainLoss,
+            currentGainLoss: cGainLoss,
+            salesTarget: sTarget,
+            remainingHours: remainingScheduledHours
+        });
+    }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
+
+    if (!isMounted) {
+        return null;
+    }
 
     return (
         <div className="space-y-6 relative min-h-[400px]">
             {loading && <LoadingOverlay message="Fetching latest labour data..." />}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Labour Management <p className="text-lg">{now.toDateString()}</p></h1>
+                    <h1 className="text-3xl font-bold flex flex-col items-start gap-2 mb-2">
+                        Labour Management
+                        <DateTimePicker
+                            value={selectedDateTime}
+                            onChange={(newDate) => {
+                                setIsTimeModified(true);
+                                setSelectedDateTime(newDate);
+                                // Recalculate scheduled hours up to the new time
+                                const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
+                                const newScheduledHours = todaysShifts.reduce((acc, shift) => {
+                                    const start = new Date(shift.shift_start);
+                                    const end = new Date(shift.shift_end);
+                                    if (start >= newDate) return acc;
+                                    const effectiveEnd = end < newDate ? end : newDate;
+                                    const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+                                    return acc + hours;
+                                }, 0);
+                                setSales({ ...sales, actualHours: newScheduledHours.toFixed(2) });
+                            }}
+                        />
+                    </h1>
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
                 </div>
                 <Button variant="outline" asChild>
-                    <a href="/manage/labour/config">
+                    <Link href="/manage/labour/config">
                         <Settings className="w-4 h-4 mr-2" />
                         Configure Matrix
-                    </a>
+                    </Link>
                 </Button>
             </div>
 
@@ -128,20 +229,23 @@ const LabourManagementPage = () => {
                                 onChange={(e) => setSales({ ...sales, projection: e.target.value })}
                             />
                         </div>
+                        <Button className="w-full mt-4" onClick={handleCalculate}>
+                            Calculate
+                        </Button>
                     </CardContent>
                 </Card>
 
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card className={currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
+                    <Card className={calculatedMetrics.currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Current Performance</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Predicted Gain/Loss</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className={`text-2xl font-bold flex items-center gap-2 ${currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                                {currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                                {currentGainLoss.toFixed(2)} hrs
+                            <div className={`text-2xl font-bold flex items-center gap-2 ${calculatedMetrics.currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {calculatedMetrics.currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                                {calculatedMetrics.currentGainLoss.toFixed(2)} hrs
                             </div>
-                            <p className="text-xs text-muted-foreground">Status at ${sales.current || "0"} sales</p>
+                            <p className="text-xs text-muted-foreground">Expected closing gain/loss at current sales</p>
                         </CardContent>
                     </Card>
 
@@ -152,22 +256,22 @@ const LabourManagementPage = () => {
                         <CardContent>
                             <div className="text-2xl font-bold flex items-center gap-2">
                                 <Target className="w-5 h-5 text-blue-500" />
-                                ${findSalesTarget()}
+                                ${calculatedMetrics.salesTarget}
                             </div>
-                            <p className="text-xs text-muted-foreground">To break even with scheduled hours</p>
+                            <p className="text-xs text-muted-foreground">To break even with predicted closing hours</p>
                         </CardContent>
                     </Card>
 
-                    <Card className={projectedGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
+                    <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Projected Status</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Remaining Hours</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className={`text-2xl font-bold flex items-center gap-2 ${projectedGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                                {projectedGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                                {projectedGainLoss >= 0 ? "+" : ""}{projectedGainLoss.toFixed(2)} hrs
+                            <div className="text-2xl font-bold flex items-center gap-2 text-blue-600">
+                                <TrendingUp className="w-5 h-5" />
+                                {calculatedMetrics.remainingHours.toFixed(2)} hrs
                             </div>
-                            <p className="text-xs text-muted-foreground">Gain/Loss based on projection</p>
+                            <p className="text-xs text-muted-foreground">From now until end of shifts</p>
                         </CardContent>
                     </Card>
 
@@ -176,7 +280,7 @@ const LabourManagementPage = () => {
                             <CardTitle className="text-sm font-medium text-muted-foreground">Allowed (at Projection)</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{projectedAllowed.toFixed(2)} hrs</div>
+                            <div className="text-2xl font-bold">{calculatedMetrics.projectedAllowed.toFixed(2)} hrs</div>
                             <p className="text-xs text-muted-foreground">Based on labour matrix</p>
                         </CardContent>
                     </Card>
@@ -188,30 +292,40 @@ const LabourManagementPage = () => {
                     <CardTitle>Labour Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
-                            <div>
-                                <p className="font-semibold">Total Scheduled</p>
-                                <p className="text-sm text-muted-foreground">Based on today&apos;s shifts</p>
-                            </div>
-                            <div className="text-xl font-bold">
-                                {totalScheduledHours.toFixed(2)} hrs
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="bg-primary/5 border-primary/20 md:col-span-1">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Total Scheduled</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-primary">
+                                    {totalScheduledHours.toFixed(2)} hrs
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Based on today&apos;s scheduled shifts</p>
+                            </CardContent>
+                        </Card>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 rounded-lg border border-border">
-                                <p className="text-sm font-semibold mb-1">Impact of Projection</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Hitting your projection of ${sales.projection || "0"} will {projectedGainLoss >= 0 ? "gain" : "cost"} you {Math.abs(projectedGainLoss).toFixed(2)} hours relative to your current schedule.
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-lg border border-border">
-                                <p className="text-sm font-semibold mb-1">Team Efficiency</p>
-                                <p className="text-xs text-muted-foreground">
-                                    You have {shifts.length} people working today. Average shift length: {(totalScheduledHours / (shifts.length || 1)).toFixed(1)} hrs.
-                                </p>
-                            </div>
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Impact of Projection</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                        Hitting your projection of ${sales.projection || "0"} will {calculatedMetrics.projectedGainLoss >= 0 ? "gain" : "cost"} you <span className="font-medium text-foreground">{Math.abs(calculatedMetrics.projectedGainLoss).toFixed(2)} hours</span> relative to your current schedule.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Team Efficiency</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                        You have <span className="font-medium text-foreground">{shifts.length}</span> people working today. Average shift length: <span className="font-medium text-foreground">{(totalScheduledHours / (shifts.length || 1)).toFixed(1)} hrs</span>.
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 </CardContent>

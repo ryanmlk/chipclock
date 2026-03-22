@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -10,20 +9,18 @@ import {
   TableCell,
   TableBody,
 } from "@/components/ui/table";
-import { Employee } from "@/generated/prisma";
+import type { Employee } from "@/generated/prisma/client";
 import { useEffect, useState } from "react";
 import { EmployeeDialog } from "@/components/employeeDialog";
 import { Trash2, Edit, Plus } from "lucide-react";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   const fetchEmployees = async () => {
     try {
-      setLoading(true);
       const response = await fetch(`/api/employees`);
       if (!response.ok) throw new Error("Failed to fetch employees");
 
@@ -31,8 +28,6 @@ export default function EmployeesPage() {
       setEmployees(data);
     } catch (error) {
       console.error("Error fetching employees:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

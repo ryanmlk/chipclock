@@ -4,14 +4,14 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/themeProvider";
 import { Toaster } from "sonner";
-import { ClerkProvider, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, UserButton } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/appSidebar";
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Search, Bell, UtensilsCrossed } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -38,17 +38,9 @@ export default function RootLayout({
             <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
-                <header className="border-b border-border/40 px-6 py-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-50">
+                <header className="border-b border-border px-6 py-3 flex items-center justify-between sticky top-0 bg-card z-50">
                   <div className="flex items-center gap-4">
                     <SidebarTrigger className="-ml-1" />
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <UtensilsCrossed className="text-white w-5 h-5" />
-                      </div>
-                      <span className="font-bold text-xl tracking-tight">
-                        CHIP<span className="font-light">CLOCK</span>
-                      </span>
-                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 flex-1 justify-end">
@@ -75,9 +67,9 @@ export default function RootLayout({
                     </div>
                   </div>
                 </header>
-                <main className="flex-1">
-                  <SessionProvider>{children}</SessionProvider>
-                </main>
+                <SessionProvider>
+                  <main className="flex-1 p-6">{children}</main>
+                </SessionProvider>
               </SidebarInset>
             </SidebarProvider>
             <Toaster />

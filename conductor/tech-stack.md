@@ -22,7 +22,7 @@
 ## 3.0 Database
 
 -   **Type:** PostgreSQL
--   **ORM (for Next.js):** Prisma ORM for type-safe database access and migrations.
+-   **ORM (for Next.js):** Prisma ORM v7 for type-safe database access and migrations.
 -   **Hosting:** Vercel (PostgreSQL database)
 
 ## 4.0 Deployment
