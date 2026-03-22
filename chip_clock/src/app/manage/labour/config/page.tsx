@@ -14,33 +14,15 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Trash2, Plus } from "lucide-react";
-
-interface MatrixItem {
-    id: string;
-    sales_level: number;
-    hours_allowed: number;
-}
+import { useLabourStore } from "@/store/useLabourStore";
 
 const LabourConfigPage = () => {
-    const [matrix, setMatrix] = useState<MatrixItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { matrix, loading, fetchLabourData } = useLabourStore();
     const [newItem, setNewItem] = useState({ sales_level: "", hours_allowed: "" });
 
-    const fetchMatrix = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/labour/matrix");
-            const data = await res.json();
-            setMatrix(data);
-        } catch (error) {
-            console.error("Error fetching matrix:", error);
-        }
-        setLoading(false);
-    };
-
     useEffect(() => {
-        fetchMatrix();
-    }, []);
+        fetchLabourData();
+    }, [fetchLabourData]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,7 +35,7 @@ const LabourConfigPage = () => {
                 body: JSON.stringify(newItem),
             });
             setNewItem({ sales_level: "", hours_allowed: "" });
-            fetchMatrix();
+            fetchLabourData(true);
         } catch (error) {
             console.error("Error saving matrix item:", error);
         }
@@ -66,7 +48,7 @@ const LabourConfigPage = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id }),
             });
-            fetchMatrix();
+            fetchLabourData(true);
         } catch (error) {
             console.error("Error deleting matrix item:", error);
         }
