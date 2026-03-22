@@ -290,30 +290,40 @@ const LabourManagementPage = () => {
                     <CardTitle>Labour Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
-                            <div>
-                                <p className="font-semibold">Total Scheduled</p>
-                                <p className="text-sm text-muted-foreground">Based on today&apos;s shifts</p>
-                            </div>
-                            <div className="text-xl font-bold">
-                                {totalScheduledHours.toFixed(2)} hrs
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="bg-primary/5 border-primary/20 md:col-span-1">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Total Scheduled</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-primary">
+                                    {totalScheduledHours.toFixed(2)} hrs
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Based on today's shifts</p>
+                            </CardContent>
+                        </Card>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-4 rounded-lg border border-border">
-                                <p className="text-sm font-semibold mb-1">Impact of Projection</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Hitting your projection of ${sales.projection || "0"} will {calculatedMetrics.projectedGainLoss >= 0 ? "gain" : "cost"} you {Math.abs(calculatedMetrics.projectedGainLoss).toFixed(2)} hours relative to your current schedule.
-                                </p>
-                            </div>
-                            <div className="p-4 rounded-lg border border-border">
-                                <p className="text-sm font-semibold mb-1">Team Efficiency</p>
-                                <p className="text-xs text-muted-foreground">
-                                    You have {shifts.length} people working today. Average shift length: {(totalScheduledHours / (shifts.length || 1)).toFixed(1)} hrs.
-                                </p>
-                            </div>
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Impact of Projection</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                        Hitting your projection of ${sales.projection || "0"} will {calculatedMetrics.projectedGainLoss >= 0 ? "gain" : "cost"} you <span className="font-medium text-foreground">{Math.abs(calculatedMetrics.projectedGainLoss).toFixed(2)} hours</span> relative to your current schedule.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Team Efficiency</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">
+                                        You have <span className="font-medium text-foreground">{shifts.length}</span> people working today. Average shift length: <span className="font-medium text-foreground">{(totalScheduledHours / (shifts.length || 1)).toFixed(1)} hrs</span>.
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 </CardContent>

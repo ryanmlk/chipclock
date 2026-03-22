@@ -1,8 +1,0 @@
-{
-  "track_id": "labour_matrix_enhancement_20260320",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-20T10:30:00Z",
-  "updated_at": "2026-03-20T10:30:00Z",
-  "description": "A small change to the labour matrix logic needs to be done. Specifically when calculating sales targets, allowed hours, predicted gain/loss. The sales values I enter in the matrix are the upper limit of sales for the corresponding hours. Ex: The first record is $4613 and 64.1hrs this means from $0 - $4613 we can use 64.1hrs. Along with making this calulcation change also make a ui change to make this more understandable to the user. For each record in the labour matrix config display it in the format <LowerLimit> to <Upper Limit>. I haven't explicitly given the lower limit, and it doesn't need to be stored. It can simply be $0 for the first record and for every other record it will be the previous records upper limit + 1"
-}
