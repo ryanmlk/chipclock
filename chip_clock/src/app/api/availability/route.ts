@@ -2,6 +2,8 @@ import prisma from "@/app/prisma";
 import type { AvailabilitySlot } from "@/generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   const position = req.nextUrl.searchParams.get("position");
   const employee_id = req.nextUrl.searchParams.get("employee_id");
