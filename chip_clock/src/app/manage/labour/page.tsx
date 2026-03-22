@@ -237,7 +237,7 @@ const LabourManagementPage = () => {
                                 {calculatedMetrics.currentGainLoss >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                                 {calculatedMetrics.currentGainLoss.toFixed(2)} hrs
                             </div>
-                            <p className="text-xs text-muted-foreground">Status at ${sales.current || "0"} sales</p>
+                            <p className="text-xs text-muted-foreground">Expected closing gain/loss at current sales</p>
                         </CardContent>
                     </Card>
 
