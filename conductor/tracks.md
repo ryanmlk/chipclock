@@ -4,5 +4,5 @@ This document outlines all the tracks (features, bug fixes, chores) within the S
 
 ---
 
-- [ ] **Track: Labour Management Page Enhancements**
-*Link: [./tracks/labour_management_enhancements_20260321/](./tracks/labour_management_enhancements_20260321/)*
+- [x] **Track: Labour Management Page Enhancements**
+*Link: [./archive/labour_management_enhancements_20260321/](./archive/labour_management_enhancements_20260321/)*
