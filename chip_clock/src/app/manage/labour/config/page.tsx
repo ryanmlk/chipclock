@@ -118,9 +118,11 @@ const LabourConfigPage = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {matrix.map((item) => (
+                            {matrix.slice().sort((a,b) => a.sales_level - b.sales_level).map((item, index, sortedArr) => {
+                                const lowerLimit = index === 0 ? 0 : sortedArr[index - 1].sales_level + 1;
+                                return (
                                 <TableRow key={item.id}>
-                                    <TableCell>${item.sales_level.toLocaleString()}</TableCell>
+                                    <TableCell>${lowerLimit.toLocaleString()} to ${item.sales_level.toLocaleString()}</TableCell>
                                     <TableCell>{item.hours_allowed} hrs</TableCell>
                                     <TableCell className="text-right">
                                         <Button
@@ -132,7 +134,7 @@ const LabourConfigPage = () => {
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                             {matrix.length === 0 && !loading && (
                                 <TableRow>
                                     <TableCell colSpan={3} className="text-center text-muted-foreground">
