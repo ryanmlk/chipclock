@@ -96,34 +96,6 @@ const LabourManagementPage = () => {
     });
 
     const handleCalculate = async () => {
-        const cAllowed = getAllowedHours(parseFloat(sales.current) || 0);
-        const pAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
-
-        const predictedClosingHours = (parseFloat(sales.actualHours) || 0) + remainingScheduledHours;
-        const pGainLoss = pAllowed - totalScheduledHours;
-        const cGainLoss = cAllowed - effectiveCurrentHours;
-
-        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
-        // Sales Target should be sales needed for predicted closing hours
-        let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
-
-        // If no match found and we have matrix data, it means hours exceed matrix
-        if (!target && sorted.length > 0) {
-            // Use the highest sales level available
-            target = sorted[sorted.length - 1];
-        }
-
-        const sTarget = target ? target.sales_level : "N/A";
-
-        setCalculatedMetrics({
-            currentAllowed: cAllowed,
-            projectedAllowed: pAllowed,
-            projectedGainLoss: pGainLoss,
-            currentGainLoss: cGainLoss,
-            salesTarget: sTarget,
-            remainingHours: remainingScheduledHours
-        });
-
         if (isTimeModified) {
             toast.info("Simulation mode: metrics not saved to database");
             return;
@@ -138,11 +110,41 @@ const LabourManagementPage = () => {
                 actual_hours: sales.actualHours
             });
             toast.success("Metrics saved successfully");
+            // Also refresh data
+            fetchLabourData(true);
         } catch (error) {
             console.error("Error saving KPIs:", error);
             toast.error("Failed to save metrics to database");
         }
     };
+
+    // Auto-calculate metrics when dependencies change
+    useEffect(() => {
+        const cAllowed = getAllowedHours(parseFloat(sales.current) || 0);
+        const pAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
+
+        const predictedClosingHours = (parseFloat(sales.actualHours) || 0) + remainingScheduledHours;
+        const pGainLoss = pAllowed - totalScheduledHours;
+        const cGainLoss = cAllowed - effectiveCurrentHours;
+
+        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
+        let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+
+        if (!target && sorted.length > 0) {
+            target = sorted[sorted.length - 1];
+        }
+
+        const sTarget = target ? target.sales_level : "N/A";
+
+        setCalculatedMetrics({
+            currentAllowed: cAllowed,
+            projectedAllowed: pAllowed,
+            projectedGainLoss: pGainLoss,
+            currentGainLoss: cGainLoss,
+            salesTarget: sTarget,
+            remainingHours: remainingScheduledHours
+        });
+    }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
 
     if (!isMounted) {
         return null;

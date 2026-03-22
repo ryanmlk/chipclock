@@ -171,6 +171,42 @@ describe('LabourManagementPage - Phase 3', () => {
         const calculateButton = screen.getByRole('button', { name: /calculate/i });
         fireEvent.click(calculateButton);
 
+        // Verify saveKPI call with loaded current sales and actual hours
+        await waitFor(() => {
+            expect(api.labour.saveKPI).toHaveBeenCalledWith(expect.objectContaining({
+                sales_projection: "7000",
+                actual_sales: "5500",
+                actual_hours: "30.00"
+            }));
+        });
+    });
+
+    it('should calculate metrics automatically without clicking Calculate button', async () => {
+        const mockNow = new Date('2026-03-17T12:00:00.000Z');
+        mockDate(mockNow.toISOString());
+
+        (useLabourStore as unknown as jest.Mock).mockReturnValue({
+            matrix: [
+                { id: '1', sales_level: 4000, hours_allowed: 40 },
+                { id: '2', sales_level: 5000, hours_allowed: 50 },
+                { id: '3', sales_level: 6000, hours_allowed: 60 },
+            ],
+            sales: { current: "5500", projection: "7000", actualHours: "30.00" },
+            loading: false,
+            setSales: mockSetSales,
+            fetchLabourData: mockFetchLabourData,
+        });
+
+        (useScheduleStore as unknown as jest.Mock).mockReturnValue({
+            shifts: [
+                { id: '1', shift_start: new Date(mockNow.getTime() - 2 * 60 * 60 * 1000).toISOString(), shift_end: new Date(mockNow.getTime() + 4 * 60 * 60 * 1000).toISOString(), hours: '6.0' }
+            ],
+            loading: false,
+            fetchShifts: mockFetchShifts,
+        });
+
+        render(<LabourManagementPage />);
+
         // Sales Target:
         // actualHours (30.00) + remainingScheduledHours (4.00 from the 6-hour shift) = 34.00 predicted closing hours.
         // Matrix entry with hours_allowed >= 34 is { id: '1', sales_level: 4000, hours_allowed: 40 }.
@@ -179,18 +215,10 @@ describe('LabourManagementPage - Phase 3', () => {
             expect(screen.getByText(/\$4000/i)).toBeInTheDocument();
         });
 
-        // Remaining Hours: Should be 4.00 (6 hour shift - 2 hours passed = 4 hours remaining from mocked time)
-        expect(screen.getByText(/4.00 hrs/i)).toBeInTheDocument();
+        // Remaining Hours: Should be 4.00
+        expect(screen.getByText(/4\.00 hrs/i)).toBeInTheDocument();
         expect(screen.getByText(/Remaining Hours/i)).toBeInTheDocument();
-
-        // Verify saveKPI call with loaded current sales and actual hours
-        await waitFor(() => {
-            expect(api.labour.saveKPI).toHaveBeenCalledWith(expect.objectContaining({
-                sales_projection: "7000",
-                actual_sales: "5500", // Should be loaded from store/API
-                actual_hours: "30.00"  // Should be loaded from store/API
-            }));
-        });
+        expect(screen.getByText(/26\.00 hrs/i)).toBeInTheDocument();
     });
 
     it('should load current sales and actual hours from store on mount', async () => {
