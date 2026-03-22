@@ -55,5 +55,7 @@ This phase focuses on correctly calculating and displaying total scheduled hours
     - [x] **Commit:** Commit Labour Summary display update.
     - [x] **Task Summary:** Attach git note for Labour Summary display.
     - [x] **Plan Update:** Update `plan.md` with commit SHA (e5449f9).
-- [ ] **Task: Conductor - User Manual Verification 'Accurate Total Scheduled Hours Calculation' (Protocol in workflow.md)**
+- [x] **Conductor - User Manual Verification 'Accurate Total Scheduled Hours Calculation'**
+    - **Note:** Fixed underlying schema property illusion by calculating explicit ISO Date differentials (bug fix commit: 1d0628e)
+    - [checkpoint: 37e51f9] (Protocol in workflow.md)**
     - [checkpoint: e5449f9]
