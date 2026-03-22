@@ -9,7 +9,6 @@ export enum Position {
   Cash = "Cashier",
   Expo = "Expo",
   Mod = "MOD",
-  TrainingCashier = "Training Cashier",
   Wash = "Wash",
   Other = "Other"
 }

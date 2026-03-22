@@ -57,7 +57,6 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       [Position.Mod]: "bg-indigo-500",
       [Position.Expo]: "bg-teal-500",
       [Position.Other]: "bg-lime-500",
-      [Position.TrainingCashier]: "bg-orange-500",
       [Position.Wash]: "bg-blue-400",
     };
     return colors[jobType] || "bg-gray-500";
@@ -139,13 +138,6 @@ const ChipotleAvailabilityTracker: React.FC = () => {
       label: "Wash",
       style: {
         badgeColor: getJobTypeColor(Position.Wash),
-      },
-    },
-    {
-      value: Position.TrainingCashier,
-      label: "Training Cashier",
-      style: {
-        badgeColor: getJobTypeColor(Position.TrainingCashier),
       },
     },
     {

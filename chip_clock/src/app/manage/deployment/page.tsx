@@ -159,9 +159,6 @@ const DeploymentPage = () => {
                             <CardTitle className="text-2xl font-bold">Current Deployment</CardTitle>
                             <p className="text-slate-500 mt-1">{dayShifts.length} Staff On-Station</p>
                         </div>
-                        <Button variant="outline">
-                            Edit Layout
-                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit flex-wrap">
@@ -169,11 +166,10 @@ const DeploymentPage = () => {
                                 <button
                                     key={filter}
                                     onClick={() => setTimeFilter(filter)}
-                                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
-                                        timeFilter === filter
+                                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${timeFilter === filter
                                             ? "bg-card text-primary shadow-sm"
                                             : "text-muted-foreground hover:text-foreground"
-                                    }`}
+                                        }`}
                                 >
                                     {filter}
                                 </button>
