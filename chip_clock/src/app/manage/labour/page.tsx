@@ -98,7 +98,7 @@ const LabourManagementPage = () => {
     const handleCalculate = async () => {
         const cAllowed = getAllowedHours(parseFloat(sales.current) || 0);
         const pAllowed = getAllowedHours(parseFloat(sales.projection) || 0);
-        
+
         const predictedClosingHours = (parseFloat(sales.actualHours) || 0) + remainingScheduledHours;
         const pGainLoss = pAllowed - totalScheduledHours;
         const cGainLoss = cAllowed - effectiveCurrentHours;
@@ -106,13 +106,13 @@ const LabourManagementPage = () => {
         const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
         // Sales Target should be sales needed for predicted closing hours
         let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
-        
+
         // If no match found and we have matrix data, it means hours exceed matrix
         if (!target && sorted.length > 0) {
             // Use the highest sales level available
             target = sorted[sorted.length - 1];
         }
-        
+
         const sTarget = target ? target.sales_level : "N/A";
 
         setCalculatedMetrics({
@@ -154,9 +154,9 @@ const LabourManagementPage = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold flex flex-col items-start gap-2 mb-2">
-                        Labour Management 
-                        <DateTimePicker 
-                            value={selectedDateTime} 
+                        Labour Management
+                        <DateTimePicker
+                            value={selectedDateTime}
                             onChange={(newDate) => {
                                 setIsTimeModified(true);
                                 setSelectedDateTime(newDate);
@@ -171,7 +171,7 @@ const LabourManagementPage = () => {
                                     return acc + hours;
                                 }, 0);
                                 setSales({ ...sales, actualHours: newScheduledHours.toFixed(2) });
-                            }} 
+                            }}
                         />
                     </h1>
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
@@ -230,7 +230,7 @@ const LabourManagementPage = () => {
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Card className={calculatedMetrics.currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Current Performance</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Predicted Gain/Loss</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className={`text-2xl font-bold flex items-center gap-2 ${calculatedMetrics.currentGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
