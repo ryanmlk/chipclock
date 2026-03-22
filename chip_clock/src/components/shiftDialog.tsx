@@ -56,7 +56,7 @@ export function ShiftDialog({
             setFormData({
                 employee_id: shift.employee_id,
                 employee_name: shift.employee ? `${shift.employee.first_name} ${shift.employee.last_name}` : "",
-                date: formatTimeLocal(shift.shift_start),
+                date: format(new Date(shift.shift_start), "yyyy-MM-dd"),
                 start_time: formatTimeLocal(shift.shift_start),
                 end_time: formatTimeLocal(shift.shift_end),
                 position: shift.position || Position.Prep,

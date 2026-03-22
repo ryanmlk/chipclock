@@ -58,15 +58,21 @@ const DeploymentPage = () => {
         fetchShifts
     } = useScheduleStore();
 
+    const [isMounted, setIsMounted] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftWithEmployee | null>(null);
 
     const [timeFilter, setTimeFilter] = useState<string>(getTimeFilter(selectedDate));
 
     useEffect(() => {
+        setIsMounted(true);
         fetchShifts();
         setTimeFilter(getTimeFilter(selectedDate));
     }, [selectedDate, fetchShifts]);
+
+    if (!isMounted) {
+        return null;
+    }
 
     const handleDeleteShift = async (id: string) => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
