@@ -67,9 +67,9 @@ const LabourManagementPage = () => {
 
     const getAllowedHours = (targetSales: number) => {
         if (matrix.length === 0) return 0;
-        // Find highest threshold that is <= targetSales
-        const sorted = [...matrix].sort((a, b) => b.sales_level - a.sales_level);
-        const match = sorted.find(m => m.sales_level <= targetSales);
+        // Find first threshold that covers the sales projection as an upper limit
+        const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
+        const match = sorted.find(m => m.sales_level >= targetSales);
         return match ? match.hours_allowed : (sorted[sorted.length - 1]?.hours_allowed || 0);
     };
 

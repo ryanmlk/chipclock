@@ -272,10 +272,52 @@ describe('LabourManagementPage - Phase 3', () => {
 
         fireEvent.click(calcBtn);
 
-        // Now it's 2 hours later, so remaining hours of the shift (ends at 4 PM mock time) should be 2.00
         await waitFor(() => {
             const matches = screen.getAllByText(/2\.00 hrs/i);
             expect(matches.length).toBeGreaterThan(0);
+        });
+    });
+
+    it('should calculate allowed hours correctly using the upper limit logic', async () => {
+        const mockNow = new Date('2026-03-17T12:00:00.000Z');
+        mockDate(mockNow.toISOString());
+
+        // We use an empty shift array so scheduledHoursUpToNow = 0
+        (useLabourStore as unknown as jest.Mock).mockReturnValue({
+            matrix: [
+                { id: '1', sales_level: 4613, hours_allowed: 64.1 },
+                { id: '2', sales_level: 5000, hours_allowed: 70.0 },
+            ],
+            // current sales is 4614, which crosses into the 5000 tier!
+            sales: { current: "4614", projection: "4613", actualHours: "0" },
+            loading: false,
+            setSales: mockSetSales,
+            fetchLabourData: mockFetchLabourData,
+        });
+
+        (useScheduleStore as unknown as jest.Mock).mockReturnValue({
+            shifts: [],
+            loading: false,
+            fetchShifts: mockFetchShifts,
+        });
+
+        render(<LabourManagementPage />);
+
+        const calcBtn = screen.getAllByRole('button', { name: /Calculate/i })[0];
+        fireEvent.click(calcBtn);
+
+        // At current sales 4614, it should use the 5000 tier (70.0 hrs).
+        // The Current Performance loss is calculated as: currentAllowed - effectiveCurrentHours.
+        // effectiveCurrentHours = 0.
+        // so currentAllowed = 70.0 -> loss is 70.00 hrs.
+        await waitFor(() => {
+            expect(screen.getByText(/70\.00 hrs/i)).toBeInTheDocument();
+        });
+
+        // At projection 4613, it should use the 4613 tier (64.1 hrs).
+        // Projected allowed should display 64.10 hrs
+        await waitFor(() => {
+            expect(screen.getByText(/64\.10 hrs/i)).toBeInTheDocument();
         });
     });
 });
