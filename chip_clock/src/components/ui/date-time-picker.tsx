@@ -70,7 +70,7 @@ export function DateTimePicker({ value, onChange, disabled = false }: DateTimePi
           variant={"outline"}
           disabled={disabled}
           className={cn(
-            "w-[260px] justify-start text-left font-normal",
+            "w-[260px] justify-start text-left font-normal text-black dark:text-white",
             !value && "text-muted-foreground"
           )}
         >
@@ -78,7 +78,7 @@ export function DateTimePicker({ value, onChange, disabled = false }: DateTimePi
           {value ? format(value, "PPP HH:mm") : <span>Pick a date and time</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
         <Calendar
           mode="single"
           selected={value}

@@ -85,4 +85,16 @@ describe('DateTimePicker', () => {
     // It should autocorrect to now
     expect(calledDate.getTime()).toBe(currentDate.getTime());
   });
+
+  it('uses black text in light mode and white text in dark mode', () => {
+    mockDate('2026-03-20T12:00:00');
+    const mockOnChange = jest.fn();
+    const currentDate = new Date();
+
+    render(<DateTimePicker value={currentDate} onChange={mockOnChange} />);
+
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('text-black');
+    expect(button).toHaveClass('dark:text-white');
+  });
 });

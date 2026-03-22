@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -14,6 +13,7 @@ import { Trash2, Edit, Plus, FileText } from "lucide-react";
 import { Position } from "@/types/enums";
 import type { Shift, Employee } from "@/generated/prisma/client";
 import { ShiftDialog } from "@/components/shiftDialog";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { formatTimeLocal } from "@/lib/dateUtils";
 
@@ -37,10 +37,9 @@ const getJobTypeColors = (jobType: string): string => {
     }
 };
 
-const getDefaultTimeFilter = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
+const getTimeFilter = (date: Date) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
     const timeInMinutes = hours * 60 + minutes;
 
     if (timeInMinutes < 11 * 60 + 30) return "Opening";
@@ -62,10 +61,11 @@ const DeploymentPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<ShiftWithEmployee | null>(null);
 
-    const [timeFilter, setTimeFilter] = useState<string>(getDefaultTimeFilter);
+    const [timeFilter, setTimeFilter] = useState<string>(getTimeFilter(selectedDate));
 
     useEffect(() => {
         fetchShifts();
+        setTimeFilter(getTimeFilter(selectedDate));
     }, [selectedDate, fetchShifts]);
 
     const handleDeleteShift = async (id: string) => {
@@ -123,17 +123,12 @@ const DeploymentPage = () => {
             <div className="flex flex-wrap items-end gap-4 justify-between">
                 <div className="flex flex-wrap items-end gap-4">
                     <div className="space-y-2">
-                        <Label>Selected Date</Label>
-                        <Input
-                            type="date"
-                            value={format(selectedDate, "yyyy-MM-dd")}
-                            onChange={(e) => {
-                                const [year, month, day] = e.target.value.split('-').map(Number);
-                                if (year && month && day) {
-                                    setSelectedDate(new Date(year, month - 1, day));
-                                }
+                        <Label>Selected Date & Time</Label>
+                        <DateTimePicker
+                            value={selectedDate}
+                            onChange={(newDate) => {
+                                setSelectedDate(newDate);
                             }}
-                            className="w-48 bg-card"
                         />
                     </div>
                 </div>
@@ -167,8 +162,8 @@ const DeploymentPage = () => {
                                     key={filter}
                                     onClick={() => setTimeFilter(filter)}
                                     className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${timeFilter === filter
-                                            ? "bg-card text-primary shadow-sm"
-                                            : "text-muted-foreground hover:text-foreground"
+                                        ? "bg-card text-primary shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
                                         }`}
                                 >
                                     {filter}
