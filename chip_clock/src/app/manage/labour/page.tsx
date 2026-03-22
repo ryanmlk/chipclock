@@ -42,7 +42,7 @@ const LabourManagementPage = () => {
     const loading = labourLoading || scheduleLoading;
     const now = selectedDateTime;
     // Filter the global shifts list to only show today's non-manager shifts
-    const shifts = allShifts.filter(s => 
+    const shifts = allShifts.filter(s =>
         isSameDay(new Date(s.shift_start), now) &&
         s.employee?.role?.toLowerCase() !== 'manager'
     );
@@ -301,7 +301,7 @@ const LabourManagementPage = () => {
                                 <div className="text-3xl font-bold text-primary">
                                     {totalScheduledHours.toFixed(2)} hrs
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">Based on today's shifts</p>
+                                <p className="text-xs text-muted-foreground mt-1">Based on today&apos;s scheduled shifts</p>
                             </CardContent>
                         </Card>
 
