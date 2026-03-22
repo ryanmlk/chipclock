@@ -348,4 +348,40 @@ describe('LabourManagementPage - Phase 3', () => {
             expect(screen.getByText(/64\.10 hrs/i)).toBeInTheDocument();
         });
     });
+
+    it('should exclude manager shifts from calculations', async () => {
+        const now = new Date('2026-03-17T12:00:00.000Z');
+        mockDate(now.toISOString());
+
+        const mockShifts = [
+            { id: '1', shift_start: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), shift_end: new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString(), hours: '6.0', employee: { role: 'cashier' } },
+            { id: '2', shift_start: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), shift_end: new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString(), hours: '8.0', employee: { role: 'manager' } },
+            { id: '3', shift_start: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), shift_end: new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString(), hours: '8.0', employee: { role: 'MANAGER' } }
+        ];
+
+        (useLabourStore as unknown as jest.Mock).mockReturnValue({
+            matrix: [],
+            sales: { current: "", projection: "", actualHours: "" },
+            loading: false,
+            setSales: jest.fn(),
+            fetchLabourData: jest.fn(),
+        });
+
+        (useScheduleStore as unknown as jest.Mock).mockReturnValue({
+            shifts: mockShifts,
+            loading: false,
+            fetchShifts: jest.fn(),
+        });
+
+        render(<LabourManagementPage />);
+
+        // Check "Total Scheduled"
+        // Manager shifts (8 hours x 2) must be ignored. Total scheduled should be 6.00 hrs, not 22.00 hrs.
+        await waitFor(() => {
+            expect(screen.getAllByText(/6\.00 hrs/i).length).toBeGreaterThan(0);
+        });
+
+        const query22 = screen.queryByText(/22\.00 hrs/i);
+        expect(query22).not.toBeInTheDocument();
+    });
 });

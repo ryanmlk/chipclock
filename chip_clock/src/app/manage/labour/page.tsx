@@ -14,6 +14,7 @@ import {
 import { TrendingUp, TrendingDown, Target, Calculator, Settings } from "lucide-react";
 import { isSameDay } from "date-fns";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import Link from 'next/link';
 
 import { useLabourStore } from "@/store/useLabourStore";
 import { useScheduleStore } from "@/store/useScheduleStore";
@@ -40,8 +41,11 @@ const LabourManagementPage = () => {
 
     const loading = labourLoading || scheduleLoading;
     const now = selectedDateTime;
-    // Filter the global shifts list to only show today's shifts for these calculations
-    const shifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), now));
+    // Filter the global shifts list to only show today's non-manager shifts
+    const shifts = allShifts.filter(s => 
+        isSameDay(new Date(s.shift_start), now) &&
+        s.employee?.role?.toLowerCase() !== 'manager'
+    );
 
     // Calculate scheduled hours up to now
     const scheduledHoursUpToNow = shifts.reduce((acc, shift) => {
@@ -179,10 +183,10 @@ const LabourManagementPage = () => {
                     <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
                 </div>
                 <Button variant="outline" asChild>
-                    <a href="/manage/labour/config">
+                    <Link href="/manage/labour/config">
                         <Settings className="w-4 h-4 mr-2" />
                         Configure Matrix
-                    </a>
+                    </Link>
                 </Button>
             </div>
 

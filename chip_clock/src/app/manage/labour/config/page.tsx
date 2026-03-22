@@ -15,6 +15,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Trash2, Plus } from "lucide-react";
 import { useLabourStore } from "@/store/useLabourStore";
+import Link from 'next/link';
 
 const LabourConfigPage = () => {
     const { matrix, loading, fetchLabourData } = useLabourStore();
@@ -130,7 +131,7 @@ const LabourConfigPage = () => {
             </Card>
             <div className="flex justify-between">
                 <Button variant="outline" asChild>
-                    <a href="/manage/labour">Back to Calculator</a>
+                    <Link href="/manage/labour">Back to Calculator</Link>
                 </Button>
             </div>
         </div>
