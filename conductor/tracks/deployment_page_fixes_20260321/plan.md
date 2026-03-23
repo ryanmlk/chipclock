@@ -12,15 +12,15 @@ This phase focuses on diagnosing and resolving the issue where shifts for the cu
     - [x] **Task Summary:** Attach git note for debugging findings.
     - [x] **Plan Update:** Update `plan.md` with commit SHA.
 
-- [ ] **Task: Implement fix for current day shift fetching.**
-    - [ ] **Goal:** Ensure shifts for the current day are correctly fetched and displayed.
-    - [ ] **TDD:** Write a failing test that specifically targets the current day's shift fetching issue.
-    - [ ] **Implementation:** Apply the necessary code changes based on the root cause analysis.
-    - [ ] **Refactor:** Ensure the fix is robust and does not introduce regressions.
-    - [ ] **Code Coverage:** Ensure >80% coverage for the corrected fetching logic.
-    - [ ] **Commit:** Commit the fix for current day shift fetching.
-    - [ ] **Task Summary:** Attach git note for current day shift fix.
-    - [ ] **Plan Update:** Update `plan.md` with commit SHA.
+- [x] **Task: Implement fix for current day shift fetching.** e742b0d
+    - [x] **Goal:** Ensure shifts for the current day are correctly fetched and displayed.
+    - [x] **TDD:** Write a failing test that specifically targets the current day's shift fetching issue.
+    - [x] **Implementation:** Apply the necessary code changes based on the root cause analysis.
+    - [x] **Refactor:** Ensure the fix is robust and does not introduce regressions.
+    - [x] **Code Coverage:** Ensure >80% coverage for the corrected fetching logic.
+    - [x] **Commit:** Commit the fix for current day shift fetching.
+    - [x] **Task Summary:** Attach git note for current day shift fix.
+    - [x] **Plan Update:** Update `plan.md` with commit SHA.
 
 - [ ] **Task: Conductor - User Manual Verification 'Investigate and Fix Current Day Shift Fetching' (Protocol in workflow.md)**
     - [checkpoint: <sha>]
