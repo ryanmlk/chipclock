@@ -9,6 +9,7 @@ import os
 import pytz
 import tempfile
 from io import BytesIO
+from collections import defaultdict
 
 # Set up logging
 logging.basicConfig(
@@ -151,7 +152,7 @@ def extract_shifts(page, week_start):
         'E': 'Expo',
         'D': 'DML',
         'L': 'MOD',
-        'R': 'Training Cashier',
+        'R': 'Cashier',
         'W': 'Wash',
         'Z': 'Other'
     }

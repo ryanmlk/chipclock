@@ -124,7 +124,7 @@ def extract_shifts(tables, week_start):
                     'E': 'Expo',
                     'D': 'DML',
                     'L': 'MOD',
-                    'R': 'Training Cashier',
+                    'R': 'Cashier',
                     'W': 'Wash',
                     'Z': 'Other'
                 }

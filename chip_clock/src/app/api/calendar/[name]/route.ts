@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
+
+export const dynamic = 'force-dynamic';
 import { generateICS } from "@/lib/generateICS";
 
 const pool = new Pool({
