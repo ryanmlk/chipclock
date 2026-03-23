@@ -15,11 +15,6 @@ export async function GET(req: NextRequest) {
 
   let effectiveStartDate = startDate ? new Date(startDate) : currentWeekStart;
 
-  // Enforce "current week onwards" rule
-  if (effectiveStartDate < currentWeekStart) {
-    effectiveStartDate = currentWeekStart;
-  }
-
   try {
     const shifts = await prisma.shift.findMany({
       where: {
