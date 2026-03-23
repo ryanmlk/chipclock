@@ -22,8 +22,8 @@ This phase focuses on diagnosing and resolving the issue where shifts for the cu
     - [x] **Task Summary:** Attach git note for current day shift fix.
     - [x] **Plan Update:** Update `plan.md` with commit SHA.
 
-- [ ] **Task: Conductor - User Manual Verification 'Investigate and Fix Current Day Shift Fetching' (Protocol in workflow.md)**
-    - [checkpoint: <sha>]
+- [x] **Task: Conductor - User Manual Verification 'Investigate and Fix Current Day Shift Fetching' (Protocol in workflow.md)**
+    - [checkpoint: 86a0b25]
 
 ## Phase 2: Optimize Shift Fetching and State Management
 
