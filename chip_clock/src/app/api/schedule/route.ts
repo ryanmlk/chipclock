@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const currentWeekStart = new Date(now.setUTCDate(diff));
   currentWeekStart.setUTCHours(0, 0, 0, 0);
 
-  let effectiveStartDate = startDate ? new Date(startDate) : currentWeekStart;
+  const effectiveStartDate = startDate ? new Date(startDate) : currentWeekStart;
 
   try {
     const shifts = await prisma.shift.findMany({

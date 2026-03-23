@@ -150,6 +150,7 @@ const LabourManagementPage = () => {
             salesTarget: sTarget,
             remainingHours: remainingScheduledHours
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
 
     if (!isMounted) {

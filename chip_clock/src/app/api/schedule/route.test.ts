@@ -1,4 +1,5 @@
 import { GET } from "./route";
+import { NextRequest } from "next/server";
 
 jest.mock("next/server", () => ({
   NextRequest: class MockNextRequest {
@@ -15,9 +16,11 @@ jest.mock("next/server", () => ({
 // We need a dummy Request global for next/server to parse if it's evaluated, but since we mocked it, it shouldn't evaluate the real thing.
 // However, the real module might still be required by route.ts, so let's set global.Request
 if (typeof global.Request === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.Request = class Request {} as any;
 }
 if (typeof global.Response === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.Response = class Response {} as any;
 }
 import prisma from "@/app/prisma";
@@ -55,7 +58,6 @@ describe("GET /api/schedule", () => {
     jest.setSystemTime(new Date("2026-03-23T03:00:00.000Z"));
 
     // The client requests the week starting from Monday, March 16th (because locally it's still Sunday the 22nd)
-    const { NextRequest } = require("next/server");
     const req = new NextRequest("http://localhost/api/schedule?start_date=2026-03-16T00:00:00.000Z&end_date=2026-03-23T00:00:00.000Z");
 
     await GET(req);
@@ -73,7 +75,6 @@ describe("GET /api/schedule", () => {
 
   it("should use currentWeekStart if no start_date is provided", async () => {
     jest.setSystemTime(new Date("2026-03-24T12:00:00.000Z")); // Tuesday
-    const { NextRequest } = require("next/server");
     const req = new NextRequest("http://localhost/api/schedule");
     await GET(req);
 
@@ -90,7 +91,6 @@ describe("GET /api/schedule", () => {
   });
 
   it("should apply name search filter", async () => {
-    const { NextRequest } = require("next/server");
     const req = new NextRequest("http://localhost/api/schedule?name=john");
     await GET(req);
 
@@ -109,7 +109,6 @@ describe("GET /api/schedule", () => {
   });
 
   it("should return 500 on db error", async () => {
-    const { NextRequest } = require("next/server");
     const req = new NextRequest("http://localhost/api/schedule");
     
     // mock console.error to avoid noise in test output
