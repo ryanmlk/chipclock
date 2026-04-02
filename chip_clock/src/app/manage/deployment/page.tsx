@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -76,11 +77,17 @@ const DeploymentPage = () => {
 
     const handleDeleteShift = async (id: string) => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
+        
+        const previousShifts = useScheduleStore.getState().shifts;
+        useScheduleStore.setState({ shifts: previousShifts.filter(s => s.id !== id) });
+        
         try {
             await api.labour.deleteShift(id);
-            fetchShifts({ force: true });
+            toast.success("Shift deleted successfully");
         } catch (error) {
             console.error("Error deleting shift:", error);
+            useScheduleStore.setState({ shifts: previousShifts });
+            toast.error("Failed to complete delete operation");
         }
     };
 
@@ -252,7 +259,7 @@ const DeploymentPage = () => {
                 onChangeState={setIsModalOpen}
                 shift={editingShift}
                 selectedDate={selectedDate}
-                onSave={fetchShifts}
+                onSave={() => {}}
             />
         </div>
     );
