@@ -138,7 +138,7 @@ const LabourManagementPage = () => {
         const cGainLoss = cAllowed - effectiveCurrentHours;
 
         const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
-        let targetIndex = sorted.findIndex(m => m.hours_allowed >= predictedClosingHours);
+        const targetIndex = sorted.findIndex(m => m.hours_allowed >= predictedClosingHours);
 
         let sTarget: number | string = "N/A";
         if (targetIndex !== -1) {
@@ -187,7 +187,7 @@ const LabourManagementPage = () => {
                                         const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
                                         return acc + hours;
                                     }, 0);
-                                    
+
                                     setSales({ ...sales, actualHours: newScheduledHours.toFixed(2), current: "" });
                                 }
                             }}
