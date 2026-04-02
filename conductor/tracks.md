@@ -9,5 +9,5 @@ This document outlines all the tracks (features, bug fixes, chores) within the S
 
 ---
 
-- [x] **Track: Calculator Page Bug Fixes**
-*Link: [./archive/bug_fixes_20260402/](./archive/bug_fixes_20260402/)*
+- [ ] **Track: Real-time Deployment Page Updates**
+*Link: [./tracks/deployment_page_updates_20260402/](./tracks/deployment_page_updates_20260402/)*

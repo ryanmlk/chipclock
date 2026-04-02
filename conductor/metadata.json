@@ -1,0 +1,8 @@
+{
+  "track_id": "deployment_page_updates_20260402",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-04-02T10:00:00Z",
+  "updated_at": "2026-04-02T10:00:00Z",
+  "description": "For my next task I want to make a change on the deployment page. If any shift is edited/deleted the data needs to update on save so that the user sees the latest data without a reload. Use states for this. I belive the useScheduleStore can be used, but if not make a new store"
+}
