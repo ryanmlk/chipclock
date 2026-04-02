@@ -6,3 +6,8 @@ This document outlines all the tracks (features, bug fixes, chores) within the S
 
 - [ ] **Track: Deployment page fixes**
 *Link: [./tracks/deployment_page_fixes_20260321/](./tracks/deployment_page_fixes_20260321/)*
+
+---
+
+- [ ] **Track: Calculator Page Bug Fixes**
+*Link: [./tracks/bug_fixes_20260402/](./tracks/bug_fixes_20260402/)*
