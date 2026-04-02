@@ -208,11 +208,10 @@ describe('LabourManagementPage - Phase 3', () => {
         render(<LabourManagementPage />);
 
         // Sales Target:
-        // actualHours (30.00) + remainingScheduledHours (4.00 from the 6-hour shift) = 34.00 predicted closing hours.
         // Matrix entry with hours_allowed >= 34 is { id: '1', sales_level: 4000, hours_allowed: 40 }.
-        // So target should be 4000.
+        // Expected target is the lower bound. Since it's the first tier, the target should be 0.
         await waitFor(() => {
-            expect(screen.getByText(/\$4000/i)).toBeInTheDocument();
+            expect(screen.getByText(/\$0/i)).toBeInTheDocument();
         });
 
         // Remaining Hours: Should be 4.00

@@ -6,6 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|sass|scss)$': 'jest-transform-stub',
+    '^@vercel/analytics/react$': '<rootDir>/src/__mocks__/vercelAnalyticsMock.js',
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {

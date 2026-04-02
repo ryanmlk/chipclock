@@ -27,6 +27,7 @@ const LabourManagementPage = () => {
     const [isMounted, setIsMounted] = React.useState(false);
     const [isTimeModified, setIsTimeModified] = React.useState(false);
     const [selectedDateTime, setSelectedDateTime] = React.useState<Date>(new Date());
+    const autoPopulatedRef = React.useRef(false);
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
     const { shifts: allShifts, loading: scheduleLoading, fetchShifts } = useScheduleStore();
 
@@ -57,10 +58,13 @@ const LabourManagementPage = () => {
         return acc + hours;
     }, 0);
 
-    // Default current hours in store if empty
+    // Default current hours in store if empty (only auto-populate once)
     useEffect(() => {
-        if (!loading && shifts.length > 0 && sales.actualHours === "" && scheduledHoursUpToNow > 0) {
-            setSales({ ...sales, actualHours: scheduledHoursUpToNow.toFixed(2) });
+        if (!loading && shifts.length > 0 && scheduledHoursUpToNow > 0 && !autoPopulatedRef.current) {
+            if (sales.actualHours === "") {
+                setSales({ ...sales, actualHours: scheduledHoursUpToNow.toFixed(2) });
+            }
+            autoPopulatedRef.current = true;
         }
     }, [loading, shifts.length, sales.actualHours, scheduledHoursUpToNow, setSales, sales]);
 
@@ -134,13 +138,14 @@ const LabourManagementPage = () => {
         const cGainLoss = cAllowed - effectiveCurrentHours;
 
         const sorted = [...matrix].sort((a, b) => a.sales_level - b.sales_level);
-        let target = sorted.find(m => m.hours_allowed >= predictedClosingHours);
+        const targetIndex = sorted.findIndex(m => m.hours_allowed >= predictedClosingHours);
 
-        if (!target && sorted.length > 0) {
-            target = sorted[sorted.length - 1];
+        let sTarget: number | string = "N/A";
+        if (targetIndex !== -1) {
+            sTarget = targetIndex > 0 ? sorted[targetIndex - 1].sales_level + 1 : 0;
+        } else if (sorted.length > 0) {
+            sTarget = sorted[sorted.length - 1].sales_level + 1;
         }
-
-        const sTarget = target ? target.sales_level : "N/A";
 
         setCalculatedMetrics({
             currentAllowed: cAllowed,
@@ -150,6 +155,7 @@ const LabourManagementPage = () => {
             salesTarget: sTarget,
             remainingHours: remainingScheduledHours
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
 
     if (!isMounted) {
@@ -166,19 +172,24 @@ const LabourManagementPage = () => {
                         <DateTimePicker
                             value={selectedDateTime}
                             onChange={(newDate) => {
-                                setIsTimeModified(true);
                                 setSelectedDateTime(newDate);
-                                // Recalculate scheduled hours up to the new time
-                                const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
-                                const newScheduledHours = todaysShifts.reduce((acc, shift) => {
-                                    const start = new Date(shift.shift_start);
-                                    const end = new Date(shift.shift_end);
-                                    if (start >= newDate) return acc;
-                                    const effectiveEnd = end < newDate ? end : newDate;
-                                    const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
-                                    return acc + hours;
-                                }, 0);
-                                setSales({ ...sales, actualHours: newScheduledHours.toFixed(2) });
+                                const isSim = Math.abs(newDate.getTime() - new Date().getTime()) > 10 * 60 * 1000;
+                                setIsTimeModified(isSim);
+
+                                if (isSim) {
+                                    // Recalculate scheduled hours up to the new time
+                                    const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
+                                    const newScheduledHours = todaysShifts.reduce((acc, shift) => {
+                                        const start = new Date(shift.shift_start);
+                                        const end = new Date(shift.shift_end);
+                                        if (start >= newDate) return acc;
+                                        const effectiveEnd = end < newDate ? end : newDate;
+                                        const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+                                        return acc + hours;
+                                    }, 0);
+
+                                    setSales({ ...sales, actualHours: newScheduledHours.toFixed(2), current: "" });
+                                }
                             }}
                         />
                     </h1>

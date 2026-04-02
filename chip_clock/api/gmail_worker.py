@@ -66,7 +66,7 @@ def process_latest_schedules():
     # We look for messages from the last 7 days to be safe
     query = 'label:"Chipotle/Chipotle Schedule" has:attachment filename:pdf'
     try:
-        results = service.users().messages().list(userId='me', q=query, maxResults=1).execute()
+        results = service.users().messages().list(userId='me', q=query, maxResults=2).execute()
         messages = results.get('messages', [])
     except HttpError as e:
         logging.error(f"Error fetching Gmail messages: {e}")

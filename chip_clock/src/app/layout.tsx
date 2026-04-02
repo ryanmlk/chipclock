@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/themeProvider";
 import { Toaster } from "sonner";
 import { ClerkProvider, SignedIn, UserButton } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/react";
 import { AppSidebar } from "@/components/appSidebar";
 import {
   SidebarProvider,
@@ -74,6 +75,7 @@ export default function RootLayout({
             </SidebarProvider>
             <Toaster />
           </ThemeProvider>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>

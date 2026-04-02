@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useScheduleStore } from "@/store/useScheduleStore";
 import {
     Dialog,
     DialogContent,
@@ -104,11 +106,20 @@ export function ShiftDialog({
             });
 
             if (!response.ok) throw new Error("Failed to save shift");
+            const savedShift = await response.json();
+
+            if (shift) {
+                useScheduleStore.setState({ shifts: useScheduleStore.getState().shifts.map(s => s.id === savedShift.id ? savedShift : s) });
+            } else {
+                useScheduleStore.setState({ shifts: [...useScheduleStore.getState().shifts, savedShift] });
+            }
 
             onSave();
             onChangeState(false);
+            toast.success("Shift saved successfully");
         } catch (error) {
             console.error("Error saving shift:", error);
+            toast.error("Failed to complete edit operation");
         }
     };
 
