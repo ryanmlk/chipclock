@@ -44,8 +44,9 @@ const getTimeFilter = (date: Date) => {
     const timeInMinutes = hours * 60 + minutes;
 
     if (timeInMinutes < 11 * 60 + 30) return "Opening";
-    if (timeInMinutes < 15 * 60) return "AM Peak";
-    if (timeInMinutes < 19 * 60) return "PM Peak";
+    if (timeInMinutes < 13 * 60 + 30) return "AM Peak";
+    if (timeInMinutes < 17 * 60 + 30) return "Mid Day";
+    if (timeInMinutes < 19 * 60 + 30) return "PM Peak";
     return "Closing";
 };
 
@@ -110,14 +111,18 @@ const DeploymentPage = () => {
                 break;
             case "AM Peak":
                 blockStart = getBlockDate(11, 30);
-                blockEnd = getBlockDate(15, 0);
+                blockEnd = getBlockDate(13, 30);
+                break;
+            case "Mid Day":
+                blockStart = getBlockDate(13, 30);
+                blockEnd = getBlockDate(17, 30);
                 break;
             case "PM Peak":
-                blockStart = getBlockDate(15, 0);
-                blockEnd = getBlockDate(19, 0);
+                blockStart = getBlockDate(17, 30);
+                blockEnd = getBlockDate(19, 30);
                 break;
             case "Closing":
-                blockStart = getBlockDate(19, 0);
+                blockStart = getBlockDate(19, 30);
                 blockEnd = getBlockDate(23, 59);
                 break;
         }
@@ -170,7 +175,7 @@ const DeploymentPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit flex-wrap">
-                            {["All", "Opening", "AM Peak", "PM Peak", "Closing"].map((filter) => (
+                            {["All", "Opening", "AM Peak", "Mid Day", "PM Peak", "Closing"].map((filter) => (
                                 <button
                                     key={filter}
                                     onClick={() => setTimeFilter(filter)}
