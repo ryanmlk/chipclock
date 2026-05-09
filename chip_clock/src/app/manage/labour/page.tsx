@@ -11,8 +11,8 @@ import {
     CardContent,
     CardDescription,
 } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Flag, Calculator, Settings, ChevronDown, ChevronUp, Hourglass } from "lucide-react";
-import { isSameDay } from "date-fns";
+import { TrendingUp, TrendingDown, Target, Flag, Calculator, Settings, ChevronDown, ChevronUp, Hourglass, Copy } from "lucide-react";
+import { isSameDay, format } from "date-fns";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import Link from 'next/link';
 
@@ -158,6 +158,43 @@ const LabourManagementPage = () => {
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
+
+    const handleCopyUpdate = () => {
+        const timeString = format(new Date(), "h:mma").toUpperCase();
+        const message = `*GLEBE AT ${timeString}*
+Projected sales: $${sales.projection || "0"}
+Current sales: $${sales.current || "0"}
+Scheduled hours: ${totalScheduledHours.toFixed(2)}
+Current hours: ${sales.actualHours || "0"}
+Matrix hours: ${calculatedMetrics.projectedAllowed.toFixed(2)}`;
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(message).then(() => {
+                toast.success("Sales update copied to clipboard");
+            }).catch(() => {
+                toast.error("Failed to copy to clipboard");
+            });
+        } else {
+            // Fallback for non-HTTPS connections (like local IP on mobile)
+            const textArea = document.createElement("textarea");
+            textArea.value = message;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                toast.success("Sales update copied to clipboard");
+            } catch (err) {
+                toast.error("Failed to copy to clipboard");
+            }
+            
+            textArea.remove();
+        }
+    };
 
     if (!isMounted) {
         return null;
@@ -371,6 +408,13 @@ const LabourManagementPage = () => {
                     </div>
                 </CardContent>
             </Card>
+
+            <div className="flex justify-end mt-4">
+                <Button onClick={handleCopyUpdate} size="lg" className="w-full sm:w-auto">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Sales Update
+                </Button>
+            </div>
         </div>
     );
 };
