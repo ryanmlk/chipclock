@@ -215,8 +215,8 @@ describe('LabourManagementPage - Phase 3', () => {
         });
 
         // Remaining Hours: Should be 4.00
-        expect(screen.getByText(/4\.00 hrs/i)).toBeInTheDocument();
-        expect(screen.getByText(/Remaining Hours/i)).toBeInTheDocument();
+        expect(screen.getByText(/\b4\.00 hrs/i)).toBeInTheDocument();
+        expect(screen.getByText("Remaining Hours")).toBeInTheDocument();
         expect(screen.getByText(/26\.00 hrs/i)).toBeInTheDocument();
     });
 
@@ -279,7 +279,7 @@ describe('LabourManagementPage - Phase 3', () => {
 
         // Initially at 12:00 PM, 4 hours remaining
         await waitFor(() => {
-            const matches = screen.getAllByText(/4\.00 hrs/i);
+            const matches = screen.getAllByText(/\b4\.00 hrs/i);
             expect(matches.length).toBeGreaterThan(0);
         });
 

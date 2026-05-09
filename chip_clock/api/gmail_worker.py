@@ -105,5 +105,27 @@ def process_latest_schedules():
     logging.info(f"Processed {success_count} new schedules.")
     return True
 
+def process_local_schedule():
+    """Parse the local schedule PDF from the project root."""
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../Chipotle Weekly Schedule.pdf'))
+    
+    if not os.path.exists(file_path):
+        logging.error(f"Local schedule not found at {file_path}")
+        return False
+
+    try:
+        with open(file_path, 'rb') as pdf_file:
+            logging.info(f"Parsing local schedule from {file_path}")
+            if parse_schedule(pdf_file):
+                logging.info("Successfully processed local schedule.")
+                return True
+            else:
+                logging.error("Failed to parse local schedule.")
+                return False
+    except Exception as e:
+        logging.error(f"Error processing local schedule {file_path}: {e}")
+
+    return False
+
 if __name__ == "__main__":
-    process_latest_schedules()
+    process_local_schedule()

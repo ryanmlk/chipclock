@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler
 import json
 import logging
 import os
-from .gmail_worker import process_latest_schedules
+from .gmail_worker import process_local_schedule
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -22,7 +22,7 @@ class handler(BaseHTTPRequestHandler):
 
         logging.info("Cron job triggered: processing schedules...")
         try:
-            success = process_latest_schedules()
+            success = process_local_schedule()
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
@@ -47,4 +47,4 @@ class handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # For local testing without a full HTTP server
     logging.info("Starting manual schedule processing...")
-    process_latest_schedules()
+    process_local_schedule()

@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { ClerkProvider, SignedIn, UserButton } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/react";
 import { AppSidebar } from "@/components/appSidebar";
+import { ThemeToggle } from "@/components/themeToggle";
 import {
   SidebarProvider,
   SidebarInset,
@@ -32,7 +33,7 @@ export default function RootLayout({
         <body className="bg-background text-foreground antialiased min-h-screen">
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
@@ -53,14 +54,7 @@ export default function RootLayout({
                       />
                       <Search className="absolute left-3 top-2.5 text-muted-foreground w-4 h-4" />
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full relative"
-                    >
-                      <Bell className="w-5 h-5" />
-                      <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
-                    </Button>
+                    <ThemeToggle />
                     <div className="flex items-center gap-3 pl-4 border-l border-border/40">
                       <SignedIn>
                         <UserButton afterSignOutUrl="/" />

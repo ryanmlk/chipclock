@@ -11,8 +11,8 @@ import {
     CardContent,
     CardDescription,
 } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Calculator, Settings } from "lucide-react";
-import { isSameDay } from "date-fns";
+import { TrendingUp, TrendingDown, Target, Flag, Calculator, Settings, ChevronDown, ChevronUp, Hourglass, Copy } from "lucide-react";
+import { isSameDay, format } from "date-fns";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import Link from 'next/link';
 
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 const LabourManagementPage = () => {
     const [isMounted, setIsMounted] = React.useState(false);
     const [isTimeModified, setIsTimeModified] = React.useState(false);
+    const [isCalculatorOpen, setIsCalculatorOpen] = React.useState(false);
     const [selectedDateTime, setSelectedDateTime] = React.useState<Date>(new Date());
     const autoPopulatedRef = React.useRef(false);
     const { matrix, loading: labourLoading, sales, setSales, fetchLabourData } = useLabourStore();
@@ -158,6 +159,43 @@ const LabourManagementPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sales.current, sales.projection, sales.actualHours, matrix, remainingScheduledHours, totalScheduledHours, effectiveCurrentHours]);
 
+    const handleCopyUpdate = () => {
+        const timeString = format(new Date(), "h:mma").toUpperCase();
+        const message = `*GLEBE AT ${timeString}*
+Projected sales: $${sales.projection || "0"}
+Current sales: $${sales.current || "0"}
+Scheduled hours: ${totalScheduledHours.toFixed(2)}
+Current hours: ${sales.actualHours || "0"}
+Matrix hours: ${calculatedMetrics.projectedAllowed.toFixed(2)}`;
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(message).then(() => {
+                toast.success("Sales update copied to clipboard");
+            }).catch(() => {
+                toast.error("Failed to copy to clipboard");
+            });
+        } else {
+            // Fallback for non-HTTPS connections (like local IP on mobile)
+            const textArea = document.createElement("textarea");
+            textArea.value = message;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                toast.success("Sales update copied to clipboard");
+            } catch (err) {
+                toast.error("Failed to copy to clipboard");
+            }
+            
+            textArea.remove();
+        }
+    };
+
     if (!isMounted) {
         return null;
     }
@@ -165,37 +203,47 @@ const LabourManagementPage = () => {
     return (
         <div className="space-y-6 relative min-h-[400px]">
             {loading && <LoadingOverlay message="Fetching latest labour data..." />}
-            <div className="flex justify-between items-center">
-                <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="w-full">
                     <h1 className="text-3xl font-bold flex flex-col items-start gap-2 mb-2">
                         Labour Management
-                        <DateTimePicker
-                            value={selectedDateTime}
-                            onChange={(newDate) => {
-                                setSelectedDateTime(newDate);
-                                const isSim = Math.abs(newDate.getTime() - new Date().getTime()) > 10 * 60 * 1000;
-                                setIsTimeModified(isSim);
-
-                                if (isSim) {
-                                    // Recalculate scheduled hours up to the new time
-                                    const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
-                                    const newScheduledHours = todaysShifts.reduce((acc, shift) => {
-                                        const start = new Date(shift.shift_start);
-                                        const end = new Date(shift.shift_end);
-                                        if (start >= newDate) return acc;
-                                        const effectiveEnd = end < newDate ? end : newDate;
-                                        const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
-                                        return acc + hours;
-                                    }, 0);
-
-                                    setSales({ ...sales, actualHours: newScheduledHours.toFixed(2), current: "" });
-                                }
-                            }}
-                        />
                     </h1>
-                    <p className="text-muted-foreground">Calculate and track labour based on sales performance.</p>
+                    <p className="text-muted-foreground mb-4">Calculate and track labour based on sales performance.</p>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                        <div className="flex-1 min-w-0">
+                            <DateTimePicker
+                                value={selectedDateTime}
+                                onChange={(newDate) => {
+                                    setSelectedDateTime(newDate);
+                                    const isSim = Math.abs(newDate.getTime() - new Date().getTime()) > 10 * 60 * 1000;
+                                    setIsTimeModified(isSim);
+
+                                    if (isSim) {
+                                        // Recalculate scheduled hours up to the new time
+                                        const todaysShifts = allShifts.filter(s => isSameDay(new Date(s.shift_start), newDate));
+                                        const newScheduledHours = todaysShifts.reduce((acc, shift) => {
+                                            const start = new Date(shift.shift_start);
+                                            const end = new Date(shift.shift_end);
+                                            if (start >= newDate) return acc;
+                                            const effectiveEnd = end < newDate ? end : newDate;
+                                            const hours = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60 * 60);
+                                            return acc + hours;
+                                        }, 0);
+
+                                        setSales({ ...sales, actualHours: newScheduledHours.toFixed(2), current: "" });
+                                    }
+                                }}
+                            />
+                        </div>
+                        <Button variant="outline" asChild className="shrink-0 sm:hidden">
+                            <Link href="/manage/labour/config">
+                                <Settings className="w-4 h-4 mr-1" />
+                                Matrix
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild className="shrink-0 hidden sm:flex">
                     <Link href="/manage/labour/config">
                         <Settings className="w-4 h-4 mr-2" />
                         Configure Matrix
@@ -205,14 +253,20 @@ const LabourManagementPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="md:col-span-1">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calculator className="w-5 h-5" />
-                            Calculator
-                        </CardTitle>
+                    <CardHeader
+                        className="cursor-pointer md:cursor-default"
+                        onClick={() => setIsCalculatorOpen(!isCalculatorOpen)}
+                    >
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Calculator className="w-5 h-5" />
+                                Calculator
+                            </CardTitle>
+                            {isCalculatorOpen ? <ChevronUp className="w-5 h-5 md:hidden text-muted-foreground" /> : <ChevronDown className="w-5 h-5 md:hidden text-muted-foreground" />}
+                        </div>
                         <CardDescription>Enter today&apos;s sales data</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className={`space-y-4 ${isCalculatorOpen ? 'block' : 'hidden md:block'}`}>
                         <div className="space-y-2">
                             <Label>Current Hours (Worked)</Label>
                             <Input
@@ -246,9 +300,9 @@ const LabourManagementPage = () => {
                     </CardContent>
                 </Card>
 
-                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card className={calculatedMetrics.currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}>
-                        <CardHeader className="pb-2">
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Card className={`gap-2 ${calculatedMetrics.currentGainLoss >= 0 ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}`}>
+                        <CardHeader>
                             <CardTitle className="text-sm font-medium text-muted-foreground">Predicted Gain/Loss</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -260,8 +314,8 @@ const LabourManagementPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-2">
+                    <Card className="gap-2">
+                        <CardHeader>
                             <CardTitle className="text-sm font-medium text-muted-foreground">Sales Target</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -273,26 +327,39 @@ const LabourManagementPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-2">
+                    <Card className="gap-2">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Final Hours</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold flex items-center gap-2">
+                                <Flag className="w-5 h-5 text-blue-500" size={16} strokeWidth={2.25} absoluteStrokeWidth />
+                                {((parseFloat(sales.actualHours) || 0) + calculatedMetrics.remainingHours).toFixed(2)} hrs
+                            </div>
+                            <p className="text-xs text-muted-foreground">Current + remaining hours</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="gap-2">
+                        <CardHeader>
                             <CardTitle className="text-sm font-medium text-muted-foreground">Remaining Hours</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold flex items-center gap-2 text-blue-600">
-                                <TrendingUp className="w-5 h-5" />
+                            <div className="text-2xl font-bold flex items-center gap-2">
+                                <Hourglass className="w-5 h-5 text-blue-500" size={16} strokeWidth={2.25} absoluteStrokeWidth />
                                 {calculatedMetrics.remainingHours.toFixed(2)} hrs
                             </div>
                             <p className="text-xs text-muted-foreground">From now until end of shifts</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Allowed (at Projection)</CardTitle>
+                    <Card className="gap-2">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Scheduled</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{calculatedMetrics.projectedAllowed.toFixed(2)} hrs</div>
-                            <p className="text-xs text-muted-foreground">Based on labour matrix</p>
+                            <div className="text-2xl font-bold">{totalScheduledHours.toFixed(2)} hrs</div>
+                            <p className="text-xs text-muted-foreground">Based on today&apos;s scheduled shifts</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -304,21 +371,21 @@ const LabourManagementPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="bg-primary/5 border-primary/20 md:col-span-1">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">Total Scheduled</CardTitle>
+                        <Card className="gap-2 bg-primary/5 border-primary/20 md:col-span-1">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Allowed (at Projection)</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-primary">
-                                    {totalScheduledHours.toFixed(2)} hrs
+                                    {calculatedMetrics.projectedAllowed.toFixed(2)} hrs
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">Based on today&apos;s scheduled shifts</p>
+                                <p className="text-xs text-muted-foreground mt-1">Based on labour matrix</p>
                             </CardContent>
                         </Card>
 
                         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Card>
-                                <CardHeader className="pb-2">
+                            <Card className="gap-2">
+                                <CardHeader>
                                     <CardTitle className="text-sm font-medium text-muted-foreground">Impact of Projection</CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -327,8 +394,8 @@ const LabourManagementPage = () => {
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card>
-                                <CardHeader className="pb-2">
+                            <Card className="gap-2">
+                                <CardHeader>
                                     <CardTitle className="text-sm font-medium text-muted-foreground">Team Efficiency</CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -341,6 +408,13 @@ const LabourManagementPage = () => {
                     </div>
                 </CardContent>
             </Card>
+
+            <div className="flex justify-end mt-4">
+                <Button onClick={handleCopyUpdate} size="lg" className="w-full sm:w-auto">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Sales Update
+                </Button>
+            </div>
         </div>
     );
 };
