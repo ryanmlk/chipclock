@@ -183,7 +183,7 @@ const DeploymentPage = () => {
                             ))}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
                             {dayShifts.map((shift) => {
                                 const sStart = new Date(shift.shift_start).getTime();
                                 const sEnd = new Date(shift.shift_end).getTime();
@@ -211,7 +211,7 @@ const DeploymentPage = () => {
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center justify-between mb-2">
                                             <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${getJobTypeColors(shift.position || '')}`}>
                                                 {shift.position || 'Other'}
                                             </span>
@@ -222,8 +222,7 @@ const DeploymentPage = () => {
                                         <h4 className="font-bold text-lg mb-1">
                                             {shift.employee?.first_name} {shift.employee?.last_name}
                                         </h4>
-                                        <p className="text-sm text-slate-500">Scheduled</p>
-                                        <div className="mt-4 flex items-center gap-2">
+                                        <div className="mt-2 flex items-center gap-1">
                                             <div className={`w-3 h-3 rounded-full ${isShiftActive ? "bg-green-500" : "bg-slate-400"}`}></div>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase">
                                                 {isShiftActive ? "Station Active" : "Station Inactive"}
