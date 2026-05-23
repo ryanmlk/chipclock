@@ -1,4 +1,4 @@
-import { AlarmClock, Calendar, ChartAreaIcon, User, Calculator, UtensilsCrossed } from "lucide-react"
+import { AlarmClock, Calendar, ChartAreaIcon, User, Calculator, UtensilsCrossed, Clock } from "lucide-react"
 
 import {
   Sidebar,
@@ -15,14 +15,9 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Dashboard",
-    url: "/manage",
-    icon: ChartAreaIcon,
-  },
-  {
-    title: "Availabilities",
-    url: "/manage/availability",
-    icon: AlarmClock,
+    title: "Labour Management",
+    url: "/manage/labour",
+    icon: Calculator,
   },
   {
     title: "Deployment",
@@ -35,9 +30,9 @@ const items = [
     icon: User,
   },
   {
-    title: "Labour Management",
-    url: "/manage/labour",
-    icon: Calculator,
+    title: "Schedule",
+    url: "/schedule",
+    icon: Clock,
   },
 ]
 

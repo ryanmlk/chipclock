@@ -78,10 +78,10 @@ const DeploymentPage = () => {
 
     const handleDeleteShift = async (id: string) => {
         if (!window.confirm("Are you sure you want to delete this shift?")) return;
-        
+
         const previousShifts = useScheduleStore.getState().shifts;
         useScheduleStore.setState({ shifts: previousShifts.filter(s => s.id !== id) });
-        
+
         try {
             await api.labour.deleteShift(id);
             toast.success("Shift deleted successfully");
@@ -152,12 +152,6 @@ const DeploymentPage = () => {
                 </div>
 
                 <div className="space-x-2">
-                    <Button variant="outline" asChild>
-                        <a href="/public/schedules" target="_blank">
-                            <FileText className="w-4 h-4 mr-2" />
-                            View Original PDF
-                        </a>
-                    </Button>
                     <Button onClick={() => { setEditingShift(null); setIsModalOpen(true); }}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Shift
@@ -264,7 +258,7 @@ const DeploymentPage = () => {
                 onChangeState={setIsModalOpen}
                 shift={editingShift}
                 selectedDate={selectedDate}
-                onSave={() => {}}
+                onSave={() => { }}
             />
         </div>
     );
