@@ -1,4 +1,4 @@
-import { AlarmClock, Calendar, ChartAreaIcon, User, Calculator, UtensilsCrossed, Clock } from "lucide-react"
+import { Calendar, User, Calculator, UtensilsCrossed, Clock } from "lucide-react"
 
 import {
   Sidebar,

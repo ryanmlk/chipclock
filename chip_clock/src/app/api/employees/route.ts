@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
+import { clerkClient } from "@clerk/nextjs/server";
+
 // PATCH: Update an employee with partial data
 export async function PATCH(request: NextRequest) {
   try {
@@ -77,6 +79,21 @@ export async function PATCH(request: NextRequest) {
       where: { id: body.id },
       data: body,
     });
+
+    // Sync role to Clerk if it was updated and we have a clerk_id
+    if (body.role && updatedEmployee.clerk_id) {
+      try {
+        const client = await clerkClient();
+        await client.users.updateUserMetadata(updatedEmployee.clerk_id, {
+          publicMetadata: {
+            role: body.role
+          }
+        });
+      } catch (clerkError) {
+        console.error("Failed to sync role to Clerk:", clerkError);
+        // Continue, as the DB was updated successfully
+      }
+    }
 
     return NextResponse.json(updatedEmployee, { status: 200 });
   } catch (error) {

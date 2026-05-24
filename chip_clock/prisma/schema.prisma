@@ -26,6 +26,7 @@ enum EmployeeRole {
 // employees
 model Employee {
   id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id     String?       @unique
   chipotle_id  Int?          @unique
   first_name   String
   last_name    String

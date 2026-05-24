@@ -188,7 +188,7 @@ Matrix hours: ${calculatedMetrics.projectedAllowed.toFixed(2)}`;
             try {
                 document.execCommand('copy');
                 toast.success("Sales update copied to clipboard");
-            } catch (err) {
+            } catch {
                 toast.error("Failed to copy to clipboard");
             }
             

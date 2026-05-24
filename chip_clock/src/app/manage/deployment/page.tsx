@@ -10,7 +10,7 @@ import {
     CardTitle,
     CardContent,
 } from "@/components/ui/card";
-import { Trash2, Edit, Plus, FileText } from "lucide-react";
+import { Trash2, Edit, Plus } from "lucide-react";
 import { Position } from "@/types/enums";
 import type { Shift, Employee } from "@/generated/prisma/client";
 import { ShiftDialog } from "@/components/shiftDialog";
